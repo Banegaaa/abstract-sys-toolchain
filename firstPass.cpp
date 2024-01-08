@@ -213,6 +213,22 @@ int firstPass(){
                     tempSymbol->lc_value = LC;
                 }
                 break;
+            
+            case HALT:
+                LC += 4;
+                break;
+            
+            case INT:
+                LC += 4;
+                break;
+            
+            case IRET:
+                LC += 4;
+                break;
+            
+            case RET:
+                LC += 4;
+                break;
 
             case ENDD:
                 // set the size of the last section
