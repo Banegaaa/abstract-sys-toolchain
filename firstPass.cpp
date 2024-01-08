@@ -438,6 +438,31 @@ int firstPass(){
                 LC += 4;
                 break;
 
+            case CSRRD:
+                i++; // get one of the special registers
+                if (tokenList[i].value != STATUS_REG && tokenList[i].value != HANDLER_REG && tokenList[i].value != CAUSE_REG){
+                    std::cout << "Error: Invalid special register" << endl;
+                    exit(EXIT_FAILURE);
+                }
+                i++; // get ,
+                i++; // get %
+                i++; // get register
+                LC += 4;
+                std::cout << "LC: " << LC << endl;
+                break;
+            
+            case CSRWR:
+                i++; // get %
+                i++; // get register
+                i++; // get ,
+                i++; // get one of the special registers
+                if (tokenList[i].value != STATUS_REG && tokenList[i].value != HANDLER_REG && tokenList[i].value != CAUSE_REG){
+                    std::cout << "Error: Invalid special register" << endl;
+                    exit(EXIT_FAILURE);
+                }
+                LC += 4;
+                std::cout << "LC: " << LC << endl;
+                break;
 
             case ENDD:
                 // set the size of the last section

@@ -1,17 +1,7 @@
-st %r0, [%r0 + symbol]
-st %r1, [%r1 + symbol]
-st %r2, [%r2 + symbol]
-st %r3, [%r3 + symbol]
-st %r4, [%r4 + symbol]
-st %r5, [%r5 + symbol]
-st %r6, [%r6 + symbol]
-st %r7, [%r7 + symbol]
-st %r8, [%r8 + symbol]
-st %r9, [%r9 + symbol]
-st %r10, [%r10 + symbol]
-st %r11, [%r11 + symbol]
-st %r12, [%r12 + symbol]
-st %r13, [%r13 + symbol]
-st %r14, [%r14 + symbol]
-st %r15, [%r15 + symbol]
+csrrd status, %r0
+csrrd cause, %r0
+csrrd handler, %r0
 
+csrwr %r0, status
+csrwr %r0, cause
+csrwr %r0, handler
