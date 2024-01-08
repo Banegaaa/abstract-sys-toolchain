@@ -261,6 +261,20 @@ int firstPass(){
             case JMP:
                 jmpAndCallCase(LC, i);
                 break;
+            
+            case PUSH:
+                i++; //get %
+                i++; // get register
+                LC += 4;
+                break;
+            
+            case POPP:
+                i++; //get %
+                i++; // get register
+                LC += 4;
+                break;
+
+            
 
 
             case ENDD:
