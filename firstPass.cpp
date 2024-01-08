@@ -44,6 +44,24 @@ int getSectionNumber(string name){
     return -1;
 }
 
+void jmpAndCallCase(int &LC, int &i){
+    i++; // get call value
+    if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL || tokenList[i].value == NAME){
+        if (tokenList[i].value == NAME){
+            // check if symbol with that name already exists in the symbol table
+            tempSymbol = symbolExists(tokenList[i].name);
+            if (tempSymbol == nullptr){
+                symbolTable.push_back(Symbol(tokenList[i].name, currentSectionNumber, 0, false, false, symbolTable.size(), false)); // TODO: check global flag
+            }
+        }
+        LC += 4;
+    }
+    else{
+        cout << "Error: Invalid call value" << endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
 
 int firstPass(){
     for (int i = 0; i < tokenList.size(); i++){
@@ -216,10 +234,16 @@ int firstPass(){
             
             case HALT:
                 LC += 4;
+                // set the size of the last section
+                tempSymbol = symbolExists(currentSection);
+                tempSymbol->setSectionSize(LC);
                 break;
             
             case INT:
                 LC += 4;
+                // set the size of the last section
+                tempSymbol = symbolExists(currentSection);
+                tempSymbol->setSectionSize(LC);
                 break;
             
             case IRET:
@@ -229,6 +253,15 @@ int firstPass(){
             case RET:
                 LC += 4;
                 break;
+
+            case CALL:
+                jmpAndCallCase(LC, i);
+                break;
+
+            case JMP:
+                jmpAndCallCase(LC, i);
+                break;
+
 
             case ENDD:
                 // set the size of the last section
