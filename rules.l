@@ -18,10 +18,14 @@
 "handler"                           return HANDLER_REG;
 "cause"                             return CAUSE_REG;
 
-"[%r"[0|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15]"]"  return REG_IND_ADR;
-"[%r"[0-15]" + "[a-zA-Z_][a-zA-Z_0-9]*"]"        return REG_POM_S_ADR;
-"[%r"[0-15]" + "[0-9]+"]"             return REG_POM_L_ADR;
-"[%r"[0-15]" + "[x0-xf]+"]"      return REG_POM_HEXL_ADR;
+"[%r"[0-9]"]"                   return REG_IND_ADR_SINGLE_DIGIT;
+"[%r"1[0-5]"]"                  return REG_IND_ADR_DOUBLE_DIGIT;
+"[%r"[0-9]" + "[a-zA-Z_][a-zA-Z_0-9]*"]"        return REG_POM_S_ADR_SINGLE_DIGIT;
+"[%r"1[0-5]" + "[a-zA-Z_][a-zA-Z_0-9]*"]"        return REG_POM_S_ADR_DOUBLE_DIGIT;
+"[%r"[0-9]" + "[0-9]+"]"             return REG_POM_L_ADR_SINGLE_DIGIT;
+"[%r"1[0-5]" + "[0-9]+"]"             return REG_POM_L_ADR_DOUBLE_DIGIT;
+"[%r"[0-9]" + "[x0-xf]+"]"      return REG_POM_HEXL_ADR_SINGLE_DIGIT;
+"[%r"1[0-5]" + "[x0-xf]+"]"      return REG_POM_HEXL_ADR_DOUBLE_DIGIT;
 
 
  

@@ -11,6 +11,9 @@ int LC = 0;
 string currentSection = "";
 int currentSectionNumber = 0;
 
+// todo set section number only when the symbol is defined!
+
+
 
 vector<Symbol> symbolTable;
 
@@ -51,13 +54,13 @@ void jmpAndCallCase(int &LC, int &i){
             // check if symbol with that name already exists in the symbol table
             tempSymbol = symbolExists(tokenList[i].name);
             if (tempSymbol == nullptr){
-                symbolTable.push_back(Symbol(tokenList[i].name, currentSectionNumber, 0, false, false, symbolTable.size(), false)); // TODO: check global flag
+                symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, false, false, symbolTable.size(), false)); // TODO: check global flag
             }
         }
         LC += 4;
     }
     else{
-        cout << "Error: Invalid call value" << endl;
+        std::cout << "Error: Invalid call value" << endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -84,11 +87,68 @@ void jumpInstructions(int &LC, int &i){
         // check if symbol with that name already exists in the symbol table
         tempSymbol = symbolExists(tokenList[i].name);
         if (tempSymbol == nullptr){
-            symbolTable.push_back(Symbol(tokenList[i].name, currentSectionNumber, 0, false, false, symbolTable.size(), false)); // TODO: check global flag
+            symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, false, false, symbolTable.size(), false)); // TODO: check global flag
         }
     
     }
     LC += 4;
+}
+
+void loadAndStoreOperandHandling(int &LC, int &i){
+    // 1. case: operand := literal || hex_literal || name
+    if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL || tokenList[i].value == NAME){
+        if (tokenList[i].value == NAME){
+            // check if symbol with that name already exists in the symbol table
+            tempSymbol = symbolExists(tokenList[i].name);
+            if (tempSymbol == nullptr){
+                symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, false, false, symbolTable.size(), false));
+            }
+        }
+    }
+    // 2. case: operand := %register
+    else if (tokenList[i].value == PC_REL_ADR){
+        i++; // get register
+
+    }
+    // 3. case: operand := $literal || $hex_literal || $name
+    else if (tokenList[i].value == IMM_ADR){
+        i++; // get literal || hex_literal || name
+        if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL || tokenList[i].value == NAME){
+            if (tokenList[i].value == NAME){
+                // check if symbol with that name already exists in the symbol table
+                tempSymbol = symbolExists(tokenList[i].name);
+                if (tempSymbol == nullptr){
+                    symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, false, false, symbolTable.size(), false));
+                }
+            }
+        }
+    }
+    // 3. case: operand := [%register] || [%register + literal]
+    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT ||
+      tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT ||
+       tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT){
+        // do nothing
+        std::cout << tokenList[i].name << "  OPPP" << endl;
+    }
+    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT){
+        // split tokenList[i].name by +
+        // and remove the last character from the second part, which is ']', that's how we will get the symbol name
+        string delimiter = "+";
+        string firstPart = tokenList[i].name.substr(0, tokenList[i].name.find(delimiter));
+        string secondPart = tokenList[i].name.substr(tokenList[i].name.find(delimiter) + 1, tokenList[i].name.length() - 2);
+        //remove ] from the second part
+        secondPart = secondPart.substr(0, secondPart.length() - 1);
+
+        // check if symbol with that name already exists in the symbol table
+        tempSymbol = symbolExists(secondPart);
+        if (tempSymbol == nullptr){
+            symbolTable.push_back(Symbol(secondPart, -1, 0, false, false, symbolTable.size(), false));
+        }
+    }
+    else{
+        std::cout << "Error: Invalid load value" << endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
 int firstPass(){
@@ -111,7 +171,7 @@ int firstPass(){
                     LC += hexToInt(tokenList[i].name);
                 }
                 else{
-                    cout << "Error: Invalid skip size" << endl;
+                    std::cout << "Error: Invalid skip size" << endl;
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -154,13 +214,13 @@ int firstPass(){
                             // check if symbol with that name already exists in the symbol table
                             tempSymbol = symbolExists(tokenList[i].name);
                             if (tempSymbol == nullptr){
-                                symbolTable.push_back(Symbol(tokenList[i].name, currentSectionNumber, LC, false, false, symbolTable.size(), false));
+                                symbolTable.push_back(Symbol(tokenList[i].name, -1, LC, false, false, symbolTable.size(), false));
                             }
                         }
                         LC += 4;
                     }
                     else{
-                        cout << "Error: Invalid word value" << endl;
+                        std::cout << "Error: Invalid word value" << endl;
                         exit(EXIT_FAILURE);
                     }
 
@@ -194,7 +254,7 @@ int firstPass(){
                     currentSection = tokenList[i].name;
                 }
                 else{
-                    cout << "Error: Invalid section name" << endl;
+                    std::cout << "Error: Invalid section name" << endl;
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -218,7 +278,7 @@ int firstPass(){
                             }
                         }
                         else{
-                            cout << "Error: Invalid symbol value" << endl;
+                            std::cout << "Error: Invalid symbol value" << endl;
                             exit(EXIT_FAILURE);
                         }
                     }
@@ -235,13 +295,13 @@ int firstPass(){
                             tempSymbol->is_defined = true;
                         }
                         else{
-                            cout << "Error: Invalid symbol value" << endl;
+                            std::cout << "Error: Invalid symbol value" << endl;
                             exit(EXIT_FAILURE);
                         }
                     }
                 }
                 else{
-                    cout << "Error: Invalid symbol name" << endl;
+                    std::cout << "Error: Invalid symbol name" << endl;
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -360,15 +420,32 @@ int firstPass(){
                 jumpInstructions(LC, i);
                 break;
             
+            case LD:
+                i++; // get operand
+                loadAndStoreOperandHandling(LC, i);
+                i++; // get ,
+                i++; // get %
+                i++; // get register
+                LC += 4;
+                break;
+
+            case ST:
+                i++; // get %
+                i++; // get register
+                i++; // get ,
+                i++; // get operand
+                loadAndStoreOperandHandling(LC, i);
+                LC += 4;
+                break;
 
 
             case ENDD:
                 // set the size of the last section
                 tempSymbol = symbolExists(currentSection);
                 tempSymbol->setSectionSize(LC);
-                cout << "Symbol table:" << endl;
+                std::cout << "Symbol table:" << endl;
                 for (int i = 0; i < symbolTable.size(); i++){
-                    cout << symbolTable[i].to_string() << endl;
+                    std::cout << symbolTable[i].to_string() << endl;
                 }
                 return EXIT_SUCCESS;
             
@@ -377,9 +454,9 @@ int firstPass(){
         }
     }
     // print the symbol table:
-    cout << "Symbol table:" << endl;
+    std::cout << "Symbol table:" << endl;
     for (int i = 0; i < symbolTable.size(); i++){
-        cout << symbolTable[i].to_string() << endl;
+        std::cout << symbolTable[i].to_string() << endl;
     }
     return EXIT_SUCCESS;
 }

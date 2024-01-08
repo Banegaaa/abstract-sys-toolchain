@@ -1,13 +1,17 @@
-.global main
-.section my_section_1
-.word 8
-main:
-    bne %r1, %r2, a
-    beq %r1, %r2, b
-    bgt %r1, %r2, c
-a:
-    .word 1
-b:
-    .word 2
-c:
-    .word 3
+st %r0, [%r0 + symbol]
+st %r1, [%r1 + symbol]
+st %r2, [%r2 + symbol]
+st %r3, [%r3 + symbol]
+st %r4, [%r4 + symbol]
+st %r5, [%r5 + symbol]
+st %r6, [%r6 + symbol]
+st %r7, [%r7 + symbol]
+st %r8, [%r8 + symbol]
+st %r9, [%r9 + symbol]
+st %r10, [%r10 + symbol]
+st %r11, [%r11 + symbol]
+st %r12, [%r12 + symbol]
+st %r13, [%r13 + symbol]
+st %r14, [%r14 + symbol]
+st %r15, [%r15 + symbol]
+
