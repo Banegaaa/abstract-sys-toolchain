@@ -18,7 +18,7 @@ class Symbol {
 
 
     Symbol(std::string name, int section, int lc_value, bool is_global, bool is_section, int number, bool is_defined, int sectionSize=0);
-    Symbol(std::string name, bool is_section); // For forward referenced symbols with no more data
+    Symbol(std::string name, bool is_section, int sectionSize); // For sections
 
     // Need a function for setting the value
     void setValue(int value);

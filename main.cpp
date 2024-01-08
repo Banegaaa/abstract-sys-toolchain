@@ -14,19 +14,6 @@ extern const char *yytext;
 vector<Token> tokenList;
 
 
-int LC;
-int passNum;
-int currentSection = -1;
-int lastHighestCurrSection;
-
-
-int hexToInt(std::string s)
-{
-    std::string numPart = s.substr(2);
-    return std::stoi(numPart, 0, 16);
-}
-
-
 int main(int argc, char *argv[])
 {
     int ntoken;
