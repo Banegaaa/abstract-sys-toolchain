@@ -37,7 +37,7 @@ Symbol* symbolExists(string name){
 
 int getSectionNumber(string name){
     for (int j = 0; j < symbolTable.size(); j++){
-        if (symbolTable[j].name == name){
+        if (symbolTable[j].name == name && symbolTable[j].is_section){
             return symbolTable[j].number;
         }
     }
@@ -54,7 +54,6 @@ int firstPass(){
                 while (tokenList[i].value != NEWLINE){
                     i++;
                 }
-                cout << "LC: " << LC << endl;
                 break;
             
             case SKIP:
@@ -69,7 +68,6 @@ int firstPass(){
                     cout << "Error: Invalid skip size" << endl;
                     exit(EXIT_FAILURE);
                 }
-                cout << "LC: " << LC << endl;
                 break;
             
             case GLOBAL:
@@ -100,7 +98,6 @@ int firstPass(){
     
                     i++;
                 }
-                cout << "LC: " << LC << endl;
                 break;
             
             case WORD:
@@ -123,7 +120,6 @@ int firstPass(){
 
                     i++;
                 }
-                cout << "LC: " << LC << endl;
                 break;
             
             case SECTION:
@@ -204,6 +200,20 @@ int firstPass(){
                 }
                 break;
 
+            case LABEL:
+                // label is in format: name:
+                tempSymbolName = tokenList[i].name.substr(0, tokenList[i].name.length() - 1);
+                tempSymbol = symbolExists(tempSymbolName);
+                if (tempSymbol == nullptr){
+                    symbolTable.push_back(Symbol(tempSymbolName, currentSectionNumber, LC, false, false, symbolTable.size(), true));
+                }
+                else{
+                    tempSymbol->is_defined = true;
+                    tempSymbol->section = currentSectionNumber;
+                    tempSymbol->lc_value = LC;
+                }
+                break;
+
             case ENDD:
                 // set the size of the last section
                 tempSymbol = symbolExists(currentSection);
@@ -213,7 +223,6 @@ int firstPass(){
                     cout << symbolTable[i].to_string() << endl;
                 }
                 return EXIT_SUCCESS;
-            
             
             default:
                 break;
