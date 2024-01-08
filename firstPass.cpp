@@ -62,6 +62,14 @@ void jmpAndCallCase(int &LC, int &i){
     }
 }
 
+void twoRegisterInstructions(int &LC, int &i){
+    i++; // get %
+    i++; // get register
+    i++; // get ,
+    i++; // get %
+    i++; // get register
+    LC += 4;
+}
 
 int firstPass(){
     for (int i = 0; i < tokenList.size(); i++){
@@ -274,8 +282,51 @@ int firstPass(){
                 LC += 4;
                 break;
 
+            case XCHG:
+                twoRegisterInstructions(LC, i);
+                break;
             
+            case ADD:
+                twoRegisterInstructions(LC, i);
+                break;
+            
+            case SUB:
+                twoRegisterInstructions(LC, i);
+                break;
 
+            case MUL:
+                twoRegisterInstructions(LC, i);
+                break;
+            
+            case DIV:
+                twoRegisterInstructions(LC, i);
+                break;
+            
+            case AND:
+                twoRegisterInstructions(LC, i);
+                break;
+            
+            case OR:
+                twoRegisterInstructions(LC, i);
+                break;
+            
+            case XOR:
+                twoRegisterInstructions(LC, i);
+                break;
+
+            case NOT:
+                i++; // get %
+                i++; // get register
+                LC += 4;
+                break;
+            
+            case SHL:
+                twoRegisterInstructions(LC, i);
+                break;
+            
+            case SHR:
+                twoRegisterInstructions(LC, i);
+                break;
 
             case ENDD:
                 // set the size of the last section
