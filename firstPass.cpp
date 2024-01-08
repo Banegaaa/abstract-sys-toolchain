@@ -71,6 +71,26 @@ void twoRegisterInstructions(int &LC, int &i){
     LC += 4;
 }
 
+void jumpInstructions(int &LC, int &i){
+    i++; // get %
+    i++; // get register
+    i++; // get ,
+    i++; // get %
+    i++; // get register
+    i++; // get ,
+    i++; // get DEC_LITERAL or HEX_LITERAL or NAME
+
+    if (tokenList[i].value == NAME){
+        // check if symbol with that name already exists in the symbol table
+        tempSymbol = symbolExists(tokenList[i].name);
+        if (tempSymbol == nullptr){
+            symbolTable.push_back(Symbol(tokenList[i].name, currentSectionNumber, 0, false, false, symbolTable.size(), false)); // TODO: check global flag
+        }
+    
+    }
+    LC += 4;
+}
+
 int firstPass(){
     for (int i = 0; i < tokenList.size(); i++){
     
@@ -226,7 +246,7 @@ int firstPass(){
                 }
                 break;
 
-            case LABEL:
+            case LABEL: // todo: is lc the value of label symbols?
                 // label is in format: name:
                 tempSymbolName = tokenList[i].name.substr(0, tokenList[i].name.length() - 1);
                 tempSymbol = symbolExists(tempSymbolName);
@@ -327,6 +347,20 @@ int firstPass(){
             case SHR:
                 twoRegisterInstructions(LC, i);
                 break;
+
+            case BEQ:
+                jumpInstructions(LC, i);
+                break;
+            
+            case BNE:
+                jumpInstructions(LC, i);
+                break;
+            
+            case BGT:
+                jumpInstructions(LC, i);
+                break;
+            
+
 
             case ENDD:
                 // set the size of the last section

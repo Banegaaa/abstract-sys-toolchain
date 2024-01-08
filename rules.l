@@ -46,9 +46,9 @@
 "call"                              return CALL;
 "ret"                               return RET;
 "jmp"                               return JMP;
-"jeq"                               return BEQ;
-"jne"                               return BNE;
-"jgt"                               return BGT;
+"beq"                               return BEQ;
+"bne"                               return BNE;
+"bgt"                               return BGT;
 "push"                              return PUSH;
 "pop"                               return POPP;
 "xchg"                              return XCHG;
