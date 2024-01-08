@@ -54,6 +54,7 @@ int firstPass(){
                 while (tokenList[i].value != NEWLINE){
                     i++;
                 }
+                cout << "LC: " << LC << endl;
                 break;
             
             case SKIP:
@@ -68,6 +69,7 @@ int firstPass(){
                     cout << "Error: Invalid skip size" << endl;
                     exit(EXIT_FAILURE);
                 }
+                cout << "LC: " << LC << endl;
                 break;
             
             case GLOBAL:
@@ -80,6 +82,8 @@ int firstPass(){
                             symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, true, false, symbolTable.size(), false));
                         }
                     }
+
+                    i++;
                 }
                 break;
 
@@ -93,27 +97,33 @@ int firstPass(){
                             symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, true, false, symbolTable.size(), false));
                         }
                     }
+    
+                    i++;
                 }
+                cout << "LC: " << LC << endl;
                 break;
             
             case WORD:
                 while(tokenList[i].value == WORD || tokenList[i].value == COMMA){
                     i++;
                     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL || tokenList[i].value == NAME){
+                        if (tokenList[i].value == NAME){
+                            // check if symbol with that name already exists in the symbol table
+                            tempSymbol = symbolExists(tokenList[i].name);
+                            if (tempSymbol == nullptr){
+                                symbolTable.push_back(Symbol(tokenList[i].name, currentSectionNumber, LC, false, false, symbolTable.size(), false));
+                            }
+                        }
                         LC += 4;
-                        // TODO: should we write the symbol in the symbol table if it doesn't exist?
-                        // if (tokenList[i].value == NAME){
-                        //     // check if symbol with that name already exists in the symbol table
-                        //     if (!symbolExists(tokenList[i].name)){
-                        //         symbolTable.push_back(Symbol(tokenList[i].name, currentSection, LC, false, false, symbolTable.size(), false));
-                        // }
-
                     }
                     else{
                         cout << "Error: Invalid word value" << endl;
                         exit(EXIT_FAILURE);
                     }
+
+                    i++;
                 }
+                cout << "LC: " << LC << endl;
                 break;
             
             case SECTION:
@@ -132,10 +142,12 @@ int firstPass(){
                         // if it is a new section, add it to the symbol table and set the LC to 0
                         symbolTable.push_back(Symbol(tokenList[i].name, symbolTable.size(), LC, false, true, symbolTable.size(), true));
                         LC = 0;
+                        currentSectionNumber = symbolTable.size() - 1;
                     }
                     else {
                         // if the section already exists, set the LC to the size of the section
                         LC = tempSymbol->sectionSize;
+                        currentSectionNumber = tempSymbol->number;
                     }
                     currentSection = tokenList[i].name;
                 }
@@ -149,12 +161,21 @@ int firstPass(){
                 // set the size of the last section
                 tempSymbol = symbolExists(currentSection);
                 tempSymbol->setSectionSize(LC);
-                break;
+                // cout << "Symbol table:" << endl;
+                // for (int i = 0; i < symbolTable.size(); i++){
+                //     cout << symbolTable[i].to_string() << endl;
+                // }
+                return EXIT_SUCCESS;
             
             
             default:
                 break;
         }
+    }
+    // print the symbol table:
+    cout << "Symbol table:" << endl;
+    for (int i = 0; i < symbolTable.size(); i++){
+        cout << symbolTable[i].to_string() << endl;
     }
     return EXIT_SUCCESS;
 }
