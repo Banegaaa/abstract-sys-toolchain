@@ -157,14 +157,61 @@ int firstPass(){
                 }
                 break;
 
+            case EQU:
+                i++; // get symbol name
+                if (tokenList[i].value == NAME){
+                    tempSymbol = symbolExists(tokenList[i].name);
+                    tempSymbolName = tokenList[i].name;
+                    if (tempSymbol == nullptr){
+                        i++; // comma
+                        i++; // get symbol value
+                        if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
+                            symbolTable.push_back(Symbol(tempSymbolName, currentSectionNumber, LC, false, false, symbolTable.size(), true));
+                            tempSymbol = &symbolTable[symbolTable.size() - 1];
+                            if (tokenList[i].value == DEC_LITERAL){
+                                tempSymbol->setValue(stoi(tokenList[i].name));
+                            }
+                            else{
+                                tempSymbol->setValue(hexToInt(tokenList[i].name));
+                            }
+                        }
+                        else{
+                            cout << "Error: Invalid symbol value" << endl;
+                            exit(EXIT_FAILURE);
+                        }
+                    }
+                    else {
+                        i++; // comma
+                        i++; // get symbol value
+                        if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
+                            if (tokenList[i].value == DEC_LITERAL){
+                                tempSymbol->setValue(stoi(tokenList[i].name));
+                            }
+                            else{
+                                tempSymbol->setValue(hexToInt(tokenList[i].name));
+                            }
+                            tempSymbol->is_defined = true;
+                        }
+                        else{
+                            cout << "Error: Invalid symbol value" << endl;
+                            exit(EXIT_FAILURE);
+                        }
+                    }
+                }
+                else{
+                    cout << "Error: Invalid symbol name" << endl;
+                    exit(EXIT_FAILURE);
+                }
+                break;
+
             case ENDD:
                 // set the size of the last section
                 tempSymbol = symbolExists(currentSection);
                 tempSymbol->setSectionSize(LC);
-                // cout << "Symbol table:" << endl;
-                // for (int i = 0; i < symbolTable.size(); i++){
-                //     cout << symbolTable[i].to_string() << endl;
-                // }
+                cout << "Symbol table:" << endl;
+                for (int i = 0; i < symbolTable.size(); i++){
+                    cout << symbolTable[i].to_string() << endl;
+                }
                 return EXIT_SUCCESS;
             
             

@@ -33,6 +33,10 @@ void Symbol::setSectionSize(int size){
     this->sectionSize = size;
 }
 
+void Symbol::setSectionNumber(int number){
+    this->section = number;
+}
+
 void Symbol::setValue(int value){
     this->value = value;
 }

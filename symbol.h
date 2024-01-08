@@ -25,6 +25,7 @@ class Symbol {
 
     // Need a function for setting the section size
     void setSectionSize(int size);
+    void setSectionNumber(int number);
 
 
     std::string to_string();
