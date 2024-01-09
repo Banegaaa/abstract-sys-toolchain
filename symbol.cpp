@@ -91,6 +91,9 @@ void Symbol::set4BytesOfMachineCode(int location, int value){
     // // Set the value at the location + 3 in the machine code array
     machineCode.push_back(value % 0x100);
     // std::cout << "FOURTH WE STORE: " << value % 0x100 << std::endl;
+    // for (int i = 0; i < machineCode.size(); i++){
+    //     std::cout << "MACHINE CODE: " << machineCode[i] << std::endl;
+    // }
 
 }
 

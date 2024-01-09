@@ -305,17 +305,22 @@ int firstPass(){
                 }
                 break;
 
-            case LABEL: // todo: is lc the value of label symbols?
+            case LABEL: // todo: is lc the value of label symbols? WE DID IT
                 // label is in format: name:
                 tempSymbolName = tokenList[i].name.substr(0, tokenList[i].name.length() - 1);
                 tempSymbol = symbolExists(tempSymbolName);
                 if (tempSymbol == nullptr){
                     symbolTable.push_back(Symbol(tempSymbolName, currentSectionNumber, LC, false, false, symbolTable.size(), true));
+                    // set the value to lc
+                    tempSymbol = &symbolTable[symbolTable.size() - 1];
+                    tempSymbol->setValue(LC);
+
                 }
                 else{
                     tempSymbol->is_defined = true;
                     tempSymbol->section = currentSectionNumber;
                     tempSymbol->lc_value = LC;
+                    tempSymbol->value = LC;
                 }
                 break;
             

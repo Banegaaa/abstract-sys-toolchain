@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     firstPass();
 
     // call secondPass
-    // secondPass();
+    secondPass();
 
     // write "token_value - token_name" to stdout (using standard for loop)
     // for (int i = 0; i < tokenList.size(); i++)
