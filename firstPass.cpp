@@ -439,6 +439,7 @@ int firstPass(){
                 break;
 
             case CSRRD:
+                i++; // get %
                 i++; // get one of the special registers
                 if (tokenList[i].value != STATUS_REG && tokenList[i].value != HANDLER_REG && tokenList[i].value != CAUSE_REG){
                     std::cout << "Error: Invalid special register" << endl;
@@ -455,6 +456,7 @@ int firstPass(){
                 i++; // get %
                 i++; // get register
                 i++; // get ,
+                i++; // get %
                 i++; // get one of the special registers
                 if (tokenList[i].value != STATUS_REG && tokenList[i].value != HANDLER_REG && tokenList[i].value != CAUSE_REG){
                     std::cout << "Error: Invalid special register" << endl;
