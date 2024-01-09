@@ -127,8 +127,7 @@ void loadAndStoreOperandHandling(int &LC, int &i){
     else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT ||
       tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT ||
        tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT){
-        // do nothing
-        std::cout << tokenList[i].name << "  OPPP" << endl;
+        // do nothing in first pass
     }
     else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT){
         // split tokenList[i].name by +
@@ -449,7 +448,6 @@ int firstPass(){
                 i++; // get %
                 i++; // get register
                 LC += 4;
-                std::cout << "LC: " << LC << endl;
                 break;
             
             case CSRWR:
