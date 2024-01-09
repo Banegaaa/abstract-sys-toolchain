@@ -20,6 +20,9 @@ extern int currentSectionNumber;
 string tempSymbolNameSecondPass;
 Symbol* tempSymbolSecondPass;
 
+// we'll need a map of section names and their current LC values
+std::unordered_map<std::string, int> sectionLCMap;
+
 
 
 // we need a function that returns the section symbol based on the given section name,
@@ -79,13 +82,6 @@ int secondPass(){
                 i++; // get ,
             }
             break;
-        
-        case EQU:
-            // nothing to do in second pass (the symbol is definately defined in the first pass)
-            i++; // get the symbol name
-            i++; // get ,
-            i++; // get the symbol value
-            break;
 
         case WORD:
             int value;
@@ -115,7 +111,36 @@ int secondPass(){
                 LC += 4;
             } 
             break;
+
+        case SECTION:
+            // first, we need to set the current LC value to the sectionLCMap, so we'll know from where to continue if this section comes up again
+            if (currentSection != ""){
+                sectionLCMap[currentSection] = LC;
+            }
+            // then, we need to set the current section to the new section
+            i++; // get the section name
+            currentSection = tokenList[i].name;
+            currentSectionNumber = getSectionNumber(currentSection);
+            
+            // we check if the section is already in sectionLCMap, if it is, we set the LC to that value, if not we set it to 0
+            if (sectionLCMap.find(currentSection) != sectionLCMap.end()){
+                LC = sectionLCMap[currentSection];
+            }
+            else {
+                LC = 0;
+            }
+            break;
         
+        case EQU:
+            // nothing to do in second pass (the symbol is definately defined in the first pass)
+            i++; // get the symbol name
+            i++; // get ,
+            i++; // get the symbol value
+            break;
+
+        case LABEL:
+            i++; // get the label name
+            break;
         
         default:
             break;
