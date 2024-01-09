@@ -461,7 +461,6 @@ int firstPass(){
                     exit(EXIT_FAILURE);
                 }
                 LC += 4;
-                std::cout << "LC: " << LC << endl;
                 break;
 
             case ENDD:
