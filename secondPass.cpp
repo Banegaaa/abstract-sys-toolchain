@@ -86,6 +86,36 @@ int secondPass(){
             i++; // get ,
             i++; // get the symbol value
             break;
+
+        case WORD:
+            int value;
+            while(tokenList[i].value == WORD || tokenList[i].value == COMMA){
+                i++;
+                if (tokenList[i].value == DEC_LITERAL){
+                    value = stoi(tokenList[i].name);
+                }
+                else if (tokenList[i].value == HEX_LITERAL){
+                    value = hexToInt(tokenList[i].name);
+                }
+                else if (tokenList[i].value == NAME){
+                    tempSymbolSecondPass = symbolExists(tokenList[i].name);
+                    if (tempSymbolSecondPass->is_defined){
+                        value = tempSymbolSecondPass->value;
+                    }
+                    else {
+                        // write zeros to the machine code
+                        // and create a relocation entry
+                        value = 0;
+                        // TODO: create a relocation entry
+                    }
+                }
+                // for each value write 4 bytes of machine code to the current section
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, value);
+                LC += 4;
+            } 
+            break;
+        
         
         default:
             break;
