@@ -70,6 +70,31 @@ void arithmeticInstructions(int initialMachineCode, int &LC, int &i){
     LC += 4;
 }
 
+void logicInstructions(int initialMachineCode, int &LC, int &i){
+    machineCodeWord = 0x61000000;
+    i++; // get %
+    i++; // get register
+    registerName = tokenList[i].name;
+    registerNumber = stoi(registerName.substr(1));
+    // shift register number to the 4th (from the right) of the machine code word
+    machineCodeWord |= (registerNumber << 12);
+    
+    i++; // get ,
+    i++; // get %
+    i++; // get register
+    registerName = tokenList[i].name;
+    registerNumber = stoi(registerName.substr(1));
+    // shift register number to the 5th and 6th byte (from the right) of the machine code word
+    machineCodeWord |= (registerNumber << 16);
+    machineCodeWord |= (registerNumber << 20);
+
+    // write machine code word to the current section
+    tempSymbolSecondPass = getSectionSymbol(currentSection);
+    tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+    LC += 4;
+
+}
+
 
 int secondPass(){
     LC = 0;
@@ -252,6 +277,36 @@ int secondPass(){
                 arithmeticInstructions(0x53000000, LC, i);
                 break;
 
+            case NOT:
+                // OC for NOT is 0x60000000
+                machineCodeWord = 0x60000000;
+                i++; // get %
+                i++; // get register
+                registerName = tokenList[i].name;
+                registerNumber = stoi(registerName.substr(1));
+                // shift register number to the 4th and 5th byte (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 16);
+                cout << "machineCodeWord: " << hex << machineCodeWord << endl;
+                machineCodeWord |= (registerNumber << 20);
+                cout << "machineCodeWord: " << hex << machineCodeWord << endl;
+                
+                // write machine code word to the current section
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+                LC += 4;
+                break;
+
+            case AND:
+                logicInstructions(0x61000000, LC, i);
+                break;
+
+            case OR:
+                logicInstructions(0x62000000, LC, i);
+                break;
+
+            case XOR:
+                logicInstructions(0x63000000, LC, i);
+                break;
             
             case ENDD:
                 // set the LC of the current section to the sectionLCMap just in case
@@ -263,10 +318,7 @@ int secondPass(){
                     if (symbolTable[j].is_section){
                         cout << "SEKCIJA: " << symbolTable[j].name << endl;
                         for (int k = 0; k < symbolTable[j].machineCode.size(); k++){
-                            cout << hex << (int)symbolTable[j].machineCode[k];
-                            if (k % 4 == 3){
-                                cout << endl;
-                            }
+                            cout << hex << symbolTable[j].machineCode[k] << endl;
                         }
                     }
                 }
