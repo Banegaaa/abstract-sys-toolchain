@@ -22,6 +22,7 @@ Symbol* tempSymbolSecondPass;
 
 int numOfBytes = 0;
 int value = 0;
+unsigned int machineCodeWord;
 
 // we'll need a map of section names and their current LC values
 std::unordered_map<std::string, int> sectionLCMap;
@@ -146,6 +147,46 @@ int secondPass(){
             case LABEL:
                 i++; // get the label name
                 break;
+
+            case HALT:
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, 0x00000000);
+                LC += 4;
+                break;
+
+            case INT:
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, 0x10000000);
+                LC += 4;
+                break;
+
+            case IRET:
+                // TODO: write machine code for IRET
+                break;
+            
+            case RET:
+                // TODO: write machine code for RET
+                break;
+
+            case CALL:
+                // TODO: write machine code for CALL
+                break;
+
+            case JMP:
+                // TODO: write machine code for JMP, should be the same as CALL
+                break;
+
+            case PUSH:
+                // TODO: write machine code for PUSH
+                break;
+
+            case POPP:
+                // TODO: write machine code for POPP
+                break;
+
+            case XCHG:
+                break;
+
             
             case ENDD:
                 // set the LC of the current section to the sectionLCMap just in case
