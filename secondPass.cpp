@@ -46,7 +46,7 @@ Symbol* getSectionSymbol(string name){
     return NULL;
 }
 
-void arithmeticInstructions(int initialMachineCode, int &LC, int &i){
+void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){
     machineCodeWord = initialMachineCode;
     i++; // get %
     i++; // get register
@@ -68,31 +68,6 @@ void arithmeticInstructions(int initialMachineCode, int &LC, int &i){
     tempSymbolSecondPass = getSectionSymbol(currentSection);
     tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
     LC += 4;
-}
-
-void logicInstructions(int initialMachineCode, int &LC, int &i){
-    machineCodeWord = 0x61000000;
-    i++; // get %
-    i++; // get register
-    registerName = tokenList[i].name;
-    registerNumber = stoi(registerName.substr(1));
-    // shift register number to the 4th (from the right) of the machine code word
-    machineCodeWord |= (registerNumber << 12);
-    
-    i++; // get ,
-    i++; // get %
-    i++; // get register
-    registerName = tokenList[i].name;
-    registerNumber = stoi(registerName.substr(1));
-    // shift register number to the 5th and 6th byte (from the right) of the machine code word
-    machineCodeWord |= (registerNumber << 16);
-    machineCodeWord |= (registerNumber << 20);
-
-    // write machine code word to the current section
-    tempSymbolSecondPass = getSectionSymbol(currentSection);
-    tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
-    LC += 4;
-
 }
 
 
@@ -262,19 +237,19 @@ int secondPass(){
                 break;
 
             case ADD:
-                arithmeticInstructions(0x50000000, LC, i);
+                twoRegisterInstructionMachineCode(0x50000000, LC, i);
                 break;
 
             case SUB:
-                arithmeticInstructions(0x51000000, LC, i);
+                twoRegisterInstructionMachineCode(0x51000000, LC, i);
                 break;
             
             case MUL:
-                arithmeticInstructions(0x52000000, LC, i);
+                twoRegisterInstructionMachineCode(0x52000000, LC, i);
                 break;
 
             case DIV:
-                arithmeticInstructions(0x53000000, LC, i);
+                twoRegisterInstructionMachineCode(0x53000000, LC, i);
                 break;
 
             case NOT:
@@ -297,15 +272,23 @@ int secondPass(){
                 break;
 
             case AND:
-                logicInstructions(0x61000000, LC, i);
+                twoRegisterInstructionMachineCode(0x61000000, LC, i);
                 break;
 
             case OR:
-                logicInstructions(0x62000000, LC, i);
+                twoRegisterInstructionMachineCode(0x62000000, LC, i);
                 break;
 
             case XOR:
-                logicInstructions(0x63000000, LC, i);
+                twoRegisterInstructionMachineCode(0x63000000, LC, i);
+                break;
+
+            case SHL:
+                twoRegisterInstructionMachineCode(0x70000000, LC, i);
+                break;
+
+            case SHR:
+                twoRegisterInstructionMachineCode(0x71000000, LC, i);
                 break;
             
             case ENDD:

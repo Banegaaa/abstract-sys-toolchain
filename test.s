@@ -1,7 +1,12 @@
 .section prva_sekcija
-not %r3
-and %r2, %r3
-or %r2, %r3
-xor %r2, %r3
-
+add %r1, %r3
+sub %r1, %r3
+mul %r1, %r3
+div %r1, %r3
+and %r1, %r3
+or %r1, %r3
+xor %r1, %r3
+not %r1
+shl %r1, %r3
+shr %r1, %r3
 .end
