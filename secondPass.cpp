@@ -209,7 +209,24 @@ int secondPass(){
                 break;
 
             case POPP:
-                // TODO: write machine code for POPP
+                // pop %gpr -> gpr <= mem32[sp]; sp <= sp + 4;  (r14 == sp)
+                machineCodeWord = 0x93000000;
+                i++; // get %
+                i++; // get register
+                registerName = tokenList[i].name;
+                registerNumber = stoi(registerName.substr(1));
+
+                // shift register number to the 6th byte (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 20);
+
+                registerNumber = 14;  // r14 == sp
+                // shift register number to the 5th byte (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 16);
+
+                // write machine code word to the current section
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+                LC += 4;
                 break;
 
             case XCHG:
