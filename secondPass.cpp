@@ -46,6 +46,30 @@ Symbol* getSectionSymbol(string name){
     return NULL;
 }
 
+void arithmeticInstructions(int initialMachineCode, int &LC, int &i){
+    machineCodeWord = initialMachineCode;
+    i++; // get %
+    i++; // get register
+    registerName = tokenList[i].name;
+    registerNumber = stoi(registerName.substr(1));
+    // shift register number to the 4th byte (from the right) of the machine code word
+    machineCodeWord |= (registerNumber << 12);
+    
+    i++; // get ,
+    i++; // get %
+    i++; // get register
+    registerName = tokenList[i].name;
+    registerNumber = stoi(registerName.substr(1));
+    // shift register number to the 5th and 6th byte (from the right) of the machine code word
+    machineCodeWord |= (registerNumber << 16);
+    machineCodeWord |= (registerNumber << 20);
+    
+    // write machine code word to the current section
+    tempSymbolSecondPass = getSectionSymbol(currentSection);
+    tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+    LC += 4;
+}
+
 
 int secondPass(){
     LC = 0;
@@ -210,6 +234,22 @@ int secondPass(){
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
                 tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
                 LC += 4;
+                break;
+
+            case ADD:
+                arithmeticInstructions(0x50000000, LC, i);
+                break;
+
+            case SUB:
+                arithmeticInstructions(0x51000000, LC, i);
+                break;
+            
+            case MUL:
+                arithmeticInstructions(0x52000000, LC, i);
+                break;
+
+            case DIV:
+                arithmeticInstructions(0x53000000, LC, i);
                 break;
 
             

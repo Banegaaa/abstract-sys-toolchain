@@ -1,3 +1,6 @@
 .section prva_sekcija
-xchg %r15, %r15
+add %r12, %r15
+sub %r12, %r15
+mul %r12, %r15
+div %r12, %r15
 .end
