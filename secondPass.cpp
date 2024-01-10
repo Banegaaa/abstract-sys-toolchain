@@ -290,6 +290,74 @@ int secondPass(){
             case SHR:
                 twoRegisterInstructionMachineCode(0x71000000, LC, i);
                 break;
+
+            case LD:
+                // TODO: write machine code for LD
+                break;
+
+            case ST:
+                // TODO: write machine code for ST
+                break;
+
+            case CSRRD:
+                machineCodeWord = 0x90000000;
+                i++; // get %
+                i++; // get special register
+                if (tokenList[i].value == STATUS_REG){
+                    registerNumber = 0;
+                }
+                else if (tokenList[i].value == HANDLER_REG){
+                    registerNumber = 1;
+                }
+                else if (tokenList[i].value == CAUSE_REG){
+                    registerNumber = 2;
+                }
+                // shift register number to the 5th byte (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 16);
+
+                i++; // get ,
+                i++; // get %
+                i++; // get register
+                registerName = tokenList[i].name;
+                registerNumber = stoi(registerName.substr(1));
+                // shift register number to the 6th (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 20);
+
+                // write machine code word to the current section
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+                LC += 4;
+                break;
+
+            case CSRWR:
+                machineCodeWord = 0x94000000;
+                i++; // get %
+                i++; // get register
+                registerName = tokenList[i].name;
+                registerNumber = stoi(registerName.substr(1));
+                // shift register number to the 5th (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 16);
+
+                i++; // get ,
+                i++; // get %
+                i++; // get special register
+                if (tokenList[i].value == STATUS_REG){
+                    registerNumber = 0;
+                }
+                else if (tokenList[i].value == HANDLER_REG){
+                    registerNumber = 1;
+                }
+                else if (tokenList[i].value == CAUSE_REG){
+                    registerNumber = 2;
+                }
+                // shift register number to the 6th byte (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 20);
+
+                // write machine code word to the current section
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+                LC += 4;
+                
             
             case ENDD:
                 // set the LC of the current section to the sectionLCMap just in case
