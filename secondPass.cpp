@@ -20,9 +20,13 @@ extern int currentSectionNumber;
 string tempSymbolNameSecondPass;
 Symbol* tempSymbolSecondPass;
 
+
+// helpers
 int numOfBytes = 0;
 int value = 0;
 unsigned int machineCodeWord;
+int registerNumber;
+string registerName;
 
 // we'll need a map of section names and their current LC values
 std::unordered_map<std::string, int> sectionLCMap;
@@ -185,6 +189,27 @@ int secondPass(){
                 break;
 
             case XCHG:
+                // OC for XCHG is 0x40
+                machineCodeWord = 0x40000000;
+                i++; // get %
+                i++; // get register
+                registerName = tokenList[i].name;
+                // remove "r" (first letter) from register name
+                registerNumber = stoi(registerName.substr(1));
+                // shift register number to the 5th byte (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 16);
+                i++; // get ,
+                i++; // get %
+                i++; // get register
+                registerName = tokenList[i].name;
+                registerNumber = stoi(registerName.substr(1));
+                // shift register number to the 4th byte (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 12);
+                
+                // write machine code word to the current section
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+                LC += 4;
                 break;
 
             
