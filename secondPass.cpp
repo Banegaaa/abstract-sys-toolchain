@@ -189,17 +189,11 @@ int secondPass(){
                 break;
 
             case IRET:
-                /*
-                    iret
-                    ====
-                    pop %status; pop %pc
-                */
-               /*
-                    pop %status => status <= mem32[sp]; sp <= sp + 4;  (r14 == sp, status == 0) => OC = 0x970e0004
-               */
-              /*
-                    pop %pc => pc <= mem32[sp]; sp <= sp + 4;  (r14 == sp, r15 == pc) => OC = 0x93fe0004
-              */
+                // iret == pop %status; pop %pc
+                // pop %status => status <= mem32[sp]; sp <= sp + 4;  (r14 == sp, status == 0) => OC = 0x970e0004
+                // ----------------------------------------------------------------------------------------------
+                // pop %pc => pc <= mem32[sp]; sp <= sp + 4;  (r14 == sp, r15 == pc) => OC = 0x93fe0004
+
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
                 tempSymbolSecondPass->set4BytesOfMachineCode(LC, 0x970e0004);  // pop %status
                 LC += 4;
