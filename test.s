@@ -1,3 +1,3 @@
 .section prva_sekcija
-pop %r15
+iret
 .end

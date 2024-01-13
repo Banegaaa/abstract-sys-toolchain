@@ -339,7 +339,7 @@ int firstPass(){
                 break;
             
             case IRET:
-                LC += 4;
+                LC += 8;
                 break;
             
             case RET:

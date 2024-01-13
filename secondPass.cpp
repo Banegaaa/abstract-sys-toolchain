@@ -189,11 +189,32 @@ int secondPass(){
                 break;
 
             case IRET:
-                // TODO: write machine code for IRET
+                /*
+                    iret
+                    ====
+                    pop %status; pop %pc
+                */
+               /*
+                    pop %status => status <= mem32[sp]; sp <= sp + 4;  (r14 == sp, status == 0) => OC = 0x970e0004
+               */
+              /*
+                    pop %pc => pc <= mem32[sp]; sp <= sp + 4;  (r14 == sp, r15 == pc) => OC = 0x93fe0004
+              */
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, 0x970e0004);  // pop %status
+                LC += 4;
+
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, 0x93fe0004);  // pop %pc
+                LC += 4;
+
                 break;
             
             case RET:
-                // TODO: write machine code for RET
+                // ret => returning from a function == pop %pc  (we have pop %pc machine code from IRET)
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, 0x93fe0004);  // pop %pc
+                LC += 4;
                 break;
 
             case CALL:
@@ -205,7 +226,23 @@ int secondPass(){
                 break;
 
             case PUSH:
-                // TODO: write machine code for PUSH
+                // push %gpr -> sp <= sp - 4; mem32[sp] <= gpr;  (r14 == sp; 14 == 0xe)
+                machineCodeWord = 0x81e00000;
+                i++; // get %
+                i++; // get register
+                registerName = tokenList[i].name;
+                registerNumber = stoi(registerName.substr(1));
+
+                // shift register number to the 4th byte (from the right) of the machine code word
+                machineCodeWord |= (registerNumber << 12);
+
+                // add the 4 to the last 3 bytes
+                machineCodeWord |= 4;
+
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+                LC += 4;
+
                 break;
 
             case POPP:
@@ -222,6 +259,9 @@ int secondPass(){
                 registerNumber = 14;  // r14 == sp
                 // shift register number to the 5th byte (from the right) of the machine code word
                 machineCodeWord |= (registerNumber << 16);
+
+                // add the 4 to the last 3 bytes
+                machineCodeWord |= 4;
 
                 // write machine code word to the current section
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
