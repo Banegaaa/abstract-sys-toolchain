@@ -1,5 +1,7 @@
 #include <string>
 #include <vector>
+#include "literal.h"
+using namespace std;
 
 class Symbol {
     public:
@@ -15,6 +17,7 @@ class Symbol {
 
     std::vector<int> machineCode;
     int machineCodeSize;
+    vector<Literal*> literals;
 
 
     Symbol(std::string name, int section, int lc_value, bool is_global, bool is_section, int number, bool is_defined, int sectionSize=0);
@@ -27,16 +30,13 @@ class Symbol {
     void setSectionSize(int size);
     void setSectionNumber(int number);
 
+    void addLiteral(Literal* literal);
 
     std::string to_string();
 
     void allocateMachineCodeMemory(int bytes);
 
     void set1ByteOfMachineCode(int location, int value);
-    void set2BytesOfMachineCode(int location, int value);
-    void set3BytesOfMachineCode(int location, int value);
-    // write declaration for 5 bytes, that has int location and 5 integer array as parameters
-    void set5BytesOfMachineCode(int location, int value);
 
     void set4BytesOfMachineCode(int location, int value);
 

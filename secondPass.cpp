@@ -32,9 +32,6 @@ string registerName;
 std::unordered_map<std::string, int> sectionLCMap;
 
 
-
-
-
 // we need a function that returns the section symbol based on the given section name,
 // so we can write machine code for that section
 Symbol* getSectionSymbol(string name){
@@ -44,6 +41,39 @@ Symbol* getSectionSymbol(string name){
         }
     }
     return NULL;
+}
+
+
+// we need a function that checks if the given int value can be stored in 3 bytes
+bool canBeStoredIn3Bytes(int value, int i){
+    if (tokenList[i].value == DEC_LITERAL){
+        unsigned int temp = stoi(tokenList[i].name);
+
+        // max value representable in 12 bits (signed)  -> 2^11 - 1
+        if (temp > 2047){
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    else {
+        // tokenList[i].value == HEX_LITERAL
+        unsigned int temp = hexToInt(tokenList[i].name);
+
+        // count the number of bits in the number
+        int count = 0;
+        while (temp){
+            count++;
+            temp >>= 1;
+        }
+        if (count > 12){
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
 }
 
 void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){

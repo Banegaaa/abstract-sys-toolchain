@@ -41,41 +41,13 @@ void Symbol::setValue(int value){
     this->value = value;
 }
 
+void Symbol::addLiteral(Literal* literal){
+    literals.push_back(literal);
+}
+
 void Symbol::set1ByteOfMachineCode(int location, int value){
     // Set the value at the location in the machine code array
     machineCode.push_back(value);
-}
-
-void Symbol::set2BytesOfMachineCode(int location, int value){
-    int higher = (int)(value / 0x100);
-    int lower = (int)(value % 0x100);
-
-    // Set the value at the location in the machine code array
-    machineCode.push_back(value);
-    // Set the value at the location + 1 in the machine code array
-    machineCode.push_back(value >> 8);
-}
-
-void Symbol::set3BytesOfMachineCode(int location, int value){
-    // Set the value at the location in the machine code array
-    machineCode.push_back(value / 0x10000);
-    // Set the value at the location + 1 in the machine code array
-    machineCode.push_back(value / 0x100 % 0x100);
-    // Set the value at the location + 2 in the machine code array
-    machineCode.push_back(value % 0x100);
-}
-
-void Symbol::set5BytesOfMachineCode(int location, int value){
-    int valueArray[5] = {0, 0, 0, 0, 0};
-    valueArray[0] = value / 0x100000000;
-    valueArray[1] = value / 0x1000000 % 0x100;
-    valueArray[2] = value / 0x10000 % 0x100;
-    valueArray[3] = value / 0x100 % 0x100;
-    valueArray[4] = value % 0x100;
-
-    for(int i = 0; i < 5; i++){
-        machineCode.push_back(valueArray[i]);
-    }
 }
 
 void Symbol::set4BytesOfMachineCode(int location, int value){
