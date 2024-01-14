@@ -17,20 +17,32 @@ extern int LC;
 extern string currentSection;
 extern int currentSectionNumber;
 
+
 string tempSymbolNameSecondPass;
 Symbol* tempSymbolSecondPass;
-
+Literal* tempLiteralSecondPass;
 
 // helpers
 int numOfBytes = 0;
 int value = 0;
 unsigned int machineCodeWord;
 int registerNumber;
+int literalIndex;
+int symbolIndex;
 string registerName;
 
 // we'll need a map of section names and their current LC values
 std::unordered_map<std::string, int> sectionLCMap;
 
+
+int getSectionNumber(string name){
+    for (int j = 0; j < symbolTable.size(); j++){
+        if (symbolTable[j].name == name && symbolTable[j].is_section){
+            return symbolTable[j].number;
+        }
+    }
+    return -1;
+}
 
 // we need a function that returns the section symbol based on the given section name,
 // so we can write machine code for that section
@@ -43,9 +55,17 @@ Symbol* getSectionSymbol(string name){
     return NULL;
 }
 
+Symbol* getSymbol(string name){
+    for (int i = 0; i < symbolTable.size(); i++){
+        if (symbolTable[i].name == name){
+            return &symbolTable[i];
+        }
+    }
+    return NULL;
+}
 
-// we need a function that checks if the given int value can be stored in 3 bytes
-bool canBeStoredIn3Bytes(int value, int i){
+
+bool canBeStoredIn12Bits(int i){
     if (tokenList[i].value == DEC_LITERAL){
         unsigned int temp = stoi(tokenList[i].name);
 
@@ -75,6 +95,7 @@ bool canBeStoredIn3Bytes(int value, int i){
         }
     }
 }
+
 
 void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){
     machineCodeWord = initialMachineCode;
@@ -253,17 +274,43 @@ int secondPass(){
                         value = hexToInt(tokenList[i].name);
                     }
 
-                    machineCodeWord = 0x20F00000;
-
-                    // set value to the last 3 bytes
-                    machineCodeWord |= value;
+                    // now we check if the literal can be stored in 12 bits
+                    if (canBeStoredIn12Bits(value)){
+                        // machineCodeWord = 0x20F00000;
+                        machineCodeWord = 0x20F00000;
+                        machineCodeWord |= (value & 0xFFF);
+                    }
+                    else {
+                        // machineCodeWord = 0x21F00000;
+                        machineCodeWord = 0x21F00000;
+                        tempSymbolSecondPass = getSectionSymbol(currentSection);
+                        tempLiteralSecondPass = tempSymbolSecondPass->literalExists(value); // it will exist, because we created it in the first pass
+                        
+                        // we need to set the last 3 bytes of the machine code word to the index of the literal
+                        machineCodeWord |= (tempLiteralSecondPass->index & 0xFFF);
+                    }
                 }
                 else {  // tokenList[i].value == NAME
+                    machineCodeWord = 0x21F00000;
+
+                    // add the symbol value to the literal table, and calculate the displacement from the current LC to the symbol value in the literal table
+                    tempSymbolSecondPass = getSymbol(tokenList[i].name);
+                    value = tempSymbolSecondPass->value;
+                    symbolIndex = tempSymbolSecondPass->number;
+
+                    // add the literal to the literal table
+                    tempSymbolSecondPass = getSectionSymbol(currentSection);
+                    literalIndex = tempSymbolSecondPass->literals.size();
+                    tempSymbolSecondPass->addLiteral(new Literal(value, LC, sizeof(value), literalIndex, symbolIndex));
+
+                    // set the last 3 bytes of the machine code word to the index of the literal
+                    machineCodeWord |= (literalIndex & 0xFFF);
 
                 }
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
 
-
-
+                tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+                LC += 4;
                 break;
 
             case JMP:
@@ -508,16 +555,29 @@ int secondPass(){
                 
             
             case ENDD:
+                // print out literals for each section
+                for (int i = 0; i < symbolTable.size(); i++){
+                    if (symbolTable[i].is_section){
+                        std::cout << "Literals for section " << symbolTable[i].name << ":" << endl;
+                        for (int j = 0; j < symbolTable[i].literals.size(); j++){
+                            std::cout << symbolTable[i].literals[j]->value << endl;
+                        }
+                    }
+                }
+
                 // set the LC of the current section to the sectionLCMap just in case
                 sectionLCMap[currentSection] = LC;
                 // for each section, go through machine code and write out (on std::cout) in hex format each byte of the section size
-                cout << "-------------------------------------" << endl;
                 for (int j = 0; j < symbolTable.size(); j++){
                     cout << "-------------------------------------" << endl;
                     if (symbolTable[j].is_section){
                         cout << "SEKCIJA: " << symbolTable[j].name << endl;
                         for (int k = 0; k < symbolTable[j].machineCode.size(); k++){
                             cout << hex << symbolTable[j].machineCode[k] << endl;
+                        }
+                        cout << "-------------------------------------" << endl;
+                        for (int k = 0; k < symbolTable[j].literals.size(); k++){
+                            cout << "LITERAL: " << symbolTable[j].literals[k]->value << endl;
                         }
                     }
                 }
@@ -527,16 +587,6 @@ int secondPass(){
                 break;
         }
     }
-    // for each section, go through machine code and write out (on std::cout) in hex format each byte of the section siz
-    // for (int i = 0; i < symbolTable.size(); i++){
-    //     cout << "-------------------------------------" << endl;
-    //     if (symbolTable[i].is_section){
-    //         cout << "SEKCIJA: " << symbolTable[i].name << endl;
-    //         for (int j = 0; j < symbolTable[i].sectionSize; j++){
-    //             cout << hex << (int)symbolTable[i].machineCode[j] << endl;
-    //         }
-    //     }
-    // }
     
     return EXIT_SUCCESS;
 

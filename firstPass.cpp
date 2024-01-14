@@ -20,6 +20,7 @@ vector<Symbol> symbolTable;
 // helpers:
 string tempSymbolName = "";
 Symbol* tempSymbol;
+bool tempBool;
 
 
 
@@ -38,18 +39,66 @@ Symbol* symbolExists(string name){
     return nullptr;
 }
 
-int getSectionNumber(string name){
-    for (int j = 0; j < symbolTable.size(); j++){
-        if (symbolTable[j].name == name && symbolTable[j].is_section){
-            return symbolTable[j].number;
+Symbol* getSectionSymbolFirstPass(string name){
+    for (int i = 0; i < symbolTable.size(); i++){
+        if (symbolTable[i].name == name && symbolTable[i].is_section){
+            return &symbolTable[i];
         }
     }
-    return -1;
+    return NULL;
 }
+
+
+// we need a function that checks if the given int value can be stored in 3 bytes
+bool canBeStoredIn3Bytes(int i){
+    if (tokenList[i].value == DEC_LITERAL){
+        unsigned int temp = stoi(tokenList[i].name);
+
+        // max value representable in 12 bits (signed)  -> 2^11 - 1
+        if (temp > 2047){
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    else {
+        // tokenList[i].value == HEX_LITERAL
+        unsigned int temp = hexToInt(tokenList[i].name);
+
+        // count the number of bits in the number
+        int count = 0;
+        while (temp){
+            count++;
+            temp >>= 1;
+        }
+        if (count > 12){
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+}
+
 
 void jmpAndCallCase(int &LC, int &i){
     i++; // get call value
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL || tokenList[i].value == NAME){
+        if (tokenList[i].value == DEC_LITERAL){
+            if (!canBeStoredIn3Bytes(i)){
+                // add the literal to the sections literal table
+                tempSymbol = getSectionSymbolFirstPass(currentSection);
+                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), LC, 4, tempSymbol->literals.size(), -1));
+            }
+        }
+        else if (tokenList[i].value == HEX_LITERAL){
+            if (!canBeStoredIn3Bytes(i)){
+                // add the literal to the sections literal table
+                tempSymbol = getSectionSymbolFirstPass(currentSection);
+                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), LC, 4, tempSymbol->literals.size(), -1));
+            }
+        }
         if (tokenList[i].value == NAME){
             // check if symbol with that name already exists in the symbol table
             tempSymbol = symbolExists(tokenList[i].name);
@@ -476,8 +525,14 @@ int firstPass(){
                 for (int i = 0; i < symbolTable.size(); i++){
                     std::cout << symbolTable[i].to_string() << endl;
                 }
+                // for each section, allocate memory for the machine code (equal to the size of the section)
+                for (int i = 0; i < symbolTable.size(); i++){
+                    if (symbolTable[i].is_section){
+                        symbolTable[i].allocateMachineCodeMemory(symbolTable[i].sectionSize/4);
+                    }
+                }
                 return EXIT_SUCCESS;
-            
+                
             default:
                 break;
         }
@@ -487,5 +542,19 @@ int firstPass(){
     for (int i = 0; i < symbolTable.size(); i++){
         std::cout << symbolTable[i].to_string() << endl;
     }
+
+    // for each section, allocate memory for the machine code (equal to the size of the section)
+    for (int i = 0; i < symbolTable.size(); i++){
+        if (symbolTable[i].is_section){
+            symbolTable[i].allocateMachineCodeMemory(symbolTable[i].sectionSize/4);
+            for (int j = 0; j < symbolTable[i].literals.size(); j++){
+                symbolTable[i].allocateAndPopulateMachineCodeMemory(symbolTable[i].literals[j]->size, symbolTable[i].literals[j]->value);
+            }
+        }
+
+    }
+
     return EXIT_SUCCESS;
+
+    //  TODO: NA KRAJU DRUGOG PROLAZA POPUNI MACHINE CODE ZA LITERALE
 }
