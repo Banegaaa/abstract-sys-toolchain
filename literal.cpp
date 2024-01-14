@@ -1,7 +1,9 @@
 #include "literal.h"
 
-Literal::Literal(int value, int location, int size){
+Literal::Literal(int value, int location, int size, int index, int symbolIndex){
     this->value = value;
     this->location = location;
     this->size = size;
+    this->index = index;
+    this->symbolIndex = symbolIndex;
 }

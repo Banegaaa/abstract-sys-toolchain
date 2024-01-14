@@ -45,6 +45,15 @@ void Symbol::addLiteral(Literal* literal){
     literals.push_back(literal);
 }
 
+Literal* Symbol::literalExists(int value){
+    for(int i = 0; i < literals.size(); i++){
+        if(literals[i]->value == value){
+            return literals[i];
+        }
+    }
+    return NULL;
+}
+
 void Symbol::set1ByteOfMachineCode(int location, int value){
     // Set the value at the location in the machine code array
     machineCode.push_back(value);
@@ -52,21 +61,21 @@ void Symbol::set1ByteOfMachineCode(int location, int value){
 
 void Symbol::set4BytesOfMachineCode(int location, int value){
     // // Set the value at the location in the machine code array
-    machineCode.push_back(value);
-    // std::cout << "FIRST WE STORE: " << value / 0x1000000 << std::endl;
-    // // // Set the value at the location + 1 in the machine code array
-    // machineCode.push_back(value / 0x10000 % 0x100);
-    // std::cout << "SECOND WE STORE: " << value / 0x10000 % 0x100 << std::endl;
-    // // // Set the value at the location + 2 in the machine code array
-    // machineCode.push_back(value / 0x100 % 0x100);
-    // std::cout << "THIRD WE STORE: " << value / 0x100 % 0x100 << std::endl;
-    // // // Set the value at the location + 3 in the machine code array
-    // machineCode.push_back(value % 0x100);
-    // std::cout << "FOURTH WE STORE: " << value % 0x100 << std::endl;
-    // // for (int i = 0; i < machineCode.size(); i++){
-    // //     std::cout << "MACHINE CODE: " << machineCode[i] << std::endl;
-    // // }
+    cout << "Setting 4 bytes of machine code at location " << location << " to value " << value << endl;
+    machineCode[location/4] = value;
+}
 
+void Symbol::allocateMachineCodeMemory(int fourBytes){
+    for(int i = 0; i < fourBytes; i++){
+        machineCode.push_back(0x00000000);
+    }
+}
+
+void Symbol::allocateAndPopulateMachineCodeMemory(int bytes, int value){
+    // separete the value into "bytes" number of bytes and put them in the machine code array
+    for(int i = 0; i < bytes; i++){
+        machineCode.push_back(value);
+    }
 }
 
 void Symbol::setZeroValueBytes(int location, int numOfBytes){
