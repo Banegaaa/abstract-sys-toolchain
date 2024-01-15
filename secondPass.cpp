@@ -242,28 +242,7 @@ int secondPass(){
                 break;
 
             case CALL:
-                // push pc; pc <= operand;
-                i++; // get operand
-
-                if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
-                    if (tokenList[i].value == DEC_LITERAL){
-                        value = stoi(tokenList[i].name);
-                    }
-                    else if (tokenList[i].value == HEX_LITERAL){
-                        value = hexToInt(tokenList[i].name);
-                    }
-
-                    machineCodeWord = 0x20F00000;
-
-                    // set value to the last 3 bytes
-                    machineCodeWord |= value;
-                }
-                else {  // tokenList[i].value == NAME
-
-                }
-
-
-
+                // TODO: write machine code for CALL
                 break;
 
             case JMP:
@@ -391,52 +370,6 @@ int secondPass(){
 
             case SHR:
                 twoRegisterInstructionMachineCode(0x71000000, LC, i);
-                break;
-
-            case BEQ:
-                // beq %ri, %rj, operand
-                // if (ri == rj) pc <= pc + operand (B = i, C = j, A = 15 (pc), D = operand)
-
-                machineCodeWord = 0x31F00000;
-
-                i++; // get %
-                i++; // get register
-                registerName = tokenList[i].name;
-                registerNumber = stoi(registerName.substr(1));
-                // shift register number to the 5th byte (from the right) of the machine code word 
-                machineCodeWord |= (registerNumber << 16);
-
-                i++; // get ,
-                i++; // get %
-                i++; // get register
-                registerName = tokenList[i].name;
-                registerNumber = stoi(registerName.substr(1));
-                // shift register number to the 4th byte (from the right) of the machine code word
-                machineCodeWord |= (registerNumber << 12);
-
-                i++; // get operand
-
-                if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
-                    if (tokenList[i].value == DEC_LITERAL){
-                        value = stoi(tokenList[i].name);
-                    }
-                    else if (tokenList[i].value == HEX_LITERAL){
-                        value = hexToInt(tokenList[i].name);
-                    }
-
-                    // set value to the last 3 bytes
-                    machineCodeWord |= value;
-                }
-
-
-                break;
-
-            case BNE:
-                // TODO: write machine code for BNE
-                break;
-
-            case BGT:
-                // TODO: write machine code for BGT
                 break;
 
             case LD:
