@@ -252,6 +252,12 @@ void jumpInstructionsCase(int &LC, int &i){
 }
 
 
+void loadInstruction(int &LC, int &i){
+
+}
+
+
+
 int secondPass(){
     LC = 0;
     currentSection = "";

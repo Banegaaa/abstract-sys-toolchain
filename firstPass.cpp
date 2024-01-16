@@ -10,6 +10,7 @@ extern vector<Token> tokenList;
 int LC = 0;
 string currentSection = "";
 int currentSectionNumber = 0;
+int tempInt; // needed for LD/ST instruction token value (because we need to know if it is LD or ST in the operand handling)
 
 // todo set section number only when the symbol is defined!
 
@@ -61,6 +62,19 @@ bool canFitIn12Bits(string valueStr, int i){
         std::cout << "Error: Invalid call value" << endl;
         exit(EXIT_FAILURE);
     }
+}
+
+bool literalExists(int value, string currentSection){
+    for (int i = 0; i < symbolTable.size(); i++){
+        if (symbolTable[i].name == currentSection){
+            for (int j = 0; j < symbolTable[i].literals.size(); j++){
+                if (symbolTable[i].literals[j]->value == value){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 void jmpAndCallCase(int &LC, int &i){
@@ -189,6 +203,143 @@ void loadAndStoreOperandHandling(int &LC, int &i){
         if (tempSymbol == nullptr){
             symbolTable.push_back(Symbol(secondPart, -1, 0, false, false, symbolTable.size(), false));
         }
+    }
+    else{
+        std::cout << "Error: Invalid load value" << endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+void loadOperand(int instructionTokenValue, int &LC, int &i){
+
+    if (tokenList[i].value == IMM_ADR){
+        i++; // get literal || hex_literal || name
+        int value = 0;
+        if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
+
+            // OPERAND == $literal || $hex_literal
+            if (tokenList[i].value == DEC_LITERAL){
+                value = stoi(tokenList[i].name);
+            }
+            else {  // HEX_LITERAL
+                value = hexToInt(tokenList[i].name);
+            }
+            if (!canFitIn12Bits(tokenList[i].name, i)){
+                tempSymbol = symbolExists(currentSection);
+                tempSymbol->addLiteral(new Literal(value, LC, sizeof(value), tempSymbol->literals.size(), -1));
+
+            }
+        }
+        else {
+            // OPERAND == $name
+
+            // check if symbol with that name already exists in the symbol table
+            tempSymbol = symbolExists(tokenList[i].name);
+            if (tempSymbol == nullptr){
+                symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, false, false, symbolTable.size(), false));
+            }
+        }
+        LC += 4;
+    }
+    else if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){  // load mem32[literal]
+        // OPERAND == literal || hex_literal
+
+        // Here, we will always create a literal, no matter if it can fit in 12 bits or not
+        // We will code this with 2 instructions -> LC += 8
+
+        int value = 0;
+        if (tokenList[i].value == DEC_LITERAL){
+            value = stoi(tokenList[i].name);
+        }
+        else { // HEX_LITERAL
+            value = hexToInt(tokenList[i].name);
+        }
+        if (!literalExists(value, currentSection)){
+            tempSymbol = symbolExists(currentSection);
+            tempSymbol->addLiteral(new Literal(value, LC, sizeof(value), tempSymbol->literals.size(), -1));
+        }
+        LC += 8;
+    }
+    else if (tokenList[i].value == NAME){  // load mem32[symbol->value]
+        // OPERAND == name
+
+        // check if the symbol already exists, if it doesn't, add it to the symbol table
+        // We will always do this with 2 instructions -> LC += 8
+
+        tempSymbol = symbolExists(tokenList[i].name);
+        if (tempSymbol == nullptr){
+            symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, false, false, symbolTable.size(), false));
+        }
+        LC += 8;
+    }
+    else if (tokenList[i].value == PC_REL_ADR){ // %
+        // OPERAND == %register
+
+        i++; // get register
+        if (tokenList[i].value != REG){
+            std::cout << "Error: Invalid register" << endl;
+            exit(EXIT_FAILURE);
+        }
+        LC += 4;
+    }
+    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT){
+        // OPERAND == [%register]
+        LC += 4;
+    }
+    else if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT){
+        // OPERAND == [%register + dec_literal]
+
+        // extract the dec_literal, and see if it fits to 12b, if it doesn't -> error
+        string delimiter = "+";
+        string operand = tokenList[i].name;
+        string extracted = operand.substr(operand.find(delimiter) + 1, operand.length() - 2);
+        //remove blank space on the begginning of extracted, and also remove ] from the end
+        extracted = extracted.substr(1, extracted.length() - 2);
+        cout << "FULLY EXTRACTED: " << extracted << endl;
+
+        
+        if (stoi(extracted) > 2047){  // TODO: converted into signed?
+            std::cout << "Error: Literal doesn't fit in 12 bits" << endl;
+            exit(EXIT_FAILURE);
+        }
+        // TODO: Should we put literal in the literal pool?
+        
+        LC += 4;
+    }
+    else if (tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT){
+        // OPERAND == [%register + hex_literal]
+
+        // extract the hex_literal, and see if it fits to 12b, if it doesn't -> error
+        string delimiter = "+";
+        string operand = tokenList[i].name;
+        string extracted = operand.substr(operand.find(delimiter) + 1, operand.length() - 2);
+        //remove ] from the second part
+        extracted = extracted.substr(1, extracted.length() - 2);
+        cout << "FULLY EXTRACTED: " << extracted << endl;
+
+        if (hexToInt(extracted) > 2047){  // TODO: converted into signed?
+            std::cout << "Error: Literal doesn't fit in 12 bits" << endl;
+            exit(EXIT_FAILURE);
+        }
+        LC += 4;
+    }
+    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT){
+        // OPERAND == [%register + name]
+        // extract the name, and see if the symbol exists, if it doesn't -> add it to the symbol table
+        string delimiter = "+";
+        string operand = tokenList[i].name;
+        string extracted = operand.substr(operand.find(delimiter) + 1, operand.length() - 2);
+        //remove ] from the second part
+        extracted = extracted.substr(1, extracted.length() - 2);
+        cout << "FULLY EXTRACTED: " << extracted << endl;
+
+
+        tempSymbol = symbolExists(extracted);
+        if (tempSymbol == nullptr){
+            symbolTable.push_back(Symbol(extracted, -1, 0, false, false, symbolTable.size(), false));
+        }
+        LC += 4;
     }
     else{
         std::cout << "Error: Invalid load value" << endl;
@@ -471,20 +622,21 @@ int firstPass(){
                 break;
             
             case LD:
+                tempInt = tokenList[i].value;
                 i++; // get operand
-                loadAndStoreOperandHandling(LC, i);
+                loadOperand(tempInt, LC, i);  // This will set LC
                 i++; // get ,
                 i++; // get %
                 i++; // get register
-                LC += 4;
                 break;
 
             case ST:
+                tempInt = tokenList[i].value;
                 i++; // get %
                 i++; // get register
                 i++; // get ,
                 i++; // get operand
-                loadAndStoreOperandHandling(LC, i);
+                loadOperand(tempInt, LC, i);
                 LC += 4;
                 break;
 
