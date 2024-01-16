@@ -64,7 +64,7 @@ bool canFitIn12Bits(string valueStr, int i){
 }
 
 void jmpAndCallCase(int &LC, int &i){
-    i++; // get call value
+    i++; // get call/jmp value
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL || tokenList[i].value == NAME){
         if (tokenList[i].value == NAME){
             // check if symbol with that name already exists in the symbol table
@@ -512,7 +512,7 @@ int firstPass(){
                 for (int i = 0; i < symbolTable.size(); i++){
                     if (symbolTable[i].is_section && symbolTable[i].literals.size() > 0){
                         for (int j = 0; j < symbolTable[i].literals.size(); j++){
-                            std::cout << symbolTable[i].literals[j] << endl;
+                            std::cout << hex << symbolTable[i].literals[j]->value << endl;
                         }
                     }
                 }

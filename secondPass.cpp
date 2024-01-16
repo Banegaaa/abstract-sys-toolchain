@@ -45,7 +45,7 @@ Symbol* getSectionSymbol(string name){
 
 
 // we need a function that checks if the given int value can be stored in 3 bytes
-bool canBeStoredIn3Bytes(int value, int i){
+bool canBeStoredIn3Bytes(int i){
     if (tokenList[i].value == DEC_LITERAL){
         unsigned int temp = stoi(tokenList[i].name);
 
@@ -76,6 +76,18 @@ bool canBeStoredIn3Bytes(int value, int i){
     }
 }
 
+int literalExists(int value){ // returns the index of the literal if it exists in the current section, -1 otherwise
+    tempSymbolSecondPass = getSectionSymbol(currentSection);
+    for (int i = 0; i < tempSymbolSecondPass->literals.size(); i++){
+        if (tempSymbolSecondPass->literals[i]->value == value){
+            return i;
+        }
+    }
+    return -1;
+
+
+}
+
 void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){
     machineCodeWord = initialMachineCode;
     i++; // get %
@@ -95,6 +107,77 @@ void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){
     machineCodeWord |= (registerNumber << 20);
     
     // write machine code word to the current section
+    tempSymbolSecondPass = getSectionSymbol(currentSection);
+    tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+    LC += 4;
+}
+
+
+void callAndJmpCase(int &LC, int &i){
+    int operation = tokenList[i].value; // CALL or JMP, we'll use this to set the machine code word
+    i++;
+    int index;
+    // *** we have two different instruction codes, one if the literal/symbol_value can fit in 3 bytes and another one if it can't ***
+    if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
+        if (tokenList[i].value == DEC_LITERAL){
+            value = stoi(tokenList[i].name);
+        }
+        else if (tokenList[i].value == HEX_LITERAL){
+            value = hexToInt(tokenList[i].name);
+        }
+
+        if (canBeStoredIn3Bytes(i)){
+            if (operation == CALL){
+                machineCodeWord = 0x20F00000;
+            }
+            else {  // operation == JMP
+                machineCodeWord = 0x30F00000;
+            }
+            
+            machineCodeWord |= value;
+        }
+        else {
+            if (operation == CALL){
+                machineCodeWord = 0x21F00000;
+            }
+            else {  // operation == JMP
+                machineCodeWord = 0x38F00000;
+            }
+            index = literalExists(value);
+            if (index == -1){
+                // create a new literal
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                index = tempSymbolSecondPass->literals.size();
+                Literal* newLiteral = new Literal(value, LC, sizeof(value), index, -1);
+                tempSymbolSecondPass->addLiteral(newLiteral);
+            }
+            machineCodeWord |= index;
+        }
+    }
+    else {  // tokenList[i].value == NAME
+        // IN ANY CASE, THE VALUE OF THE SYMBOL WILL BE SET IN THE POOL OF LITERALS (machineCodeWord = mem32[...])
+        if (operation == CALL){
+            machineCodeWord = 0x21F00000;
+        }
+        else {  // operation == JMP
+            machineCodeWord = 0x38F00000;
+        }
+
+        tempSymbolSecondPass = symbolExists(tokenList[i].name);
+        value = tempSymbolSecondPass->value;
+        int symbolIndex = tempSymbolSecondPass->number;
+
+        // TODO: create a relocation entry
+
+        tempSymbolSecondPass = getSectionSymbol(currentSection);
+        index = tempSymbolSecondPass->literals.size();
+        Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
+        tempSymbolSecondPass->addLiteral(newLiteral);
+
+        // set index to the last 3 bytes of the literal
+        machineCodeWord |= index;
+    }
+
     tempSymbolSecondPass = getSectionSymbol(currentSection);
     tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
     LC += 4;
@@ -242,11 +325,11 @@ int secondPass(){
                 break;
 
             case CALL:
-                // TODO: write machine code for CALL
+                callAndJmpCase(LC, i);
                 break;
 
             case JMP:
-                // TODO: write machine code for JMP, should be the same as CALL
+                callAndJmpCase(LC, i);
                 break;
 
             case PUSH:
@@ -342,9 +425,7 @@ int secondPass(){
                 registerNumber = stoi(registerName.substr(1));
                 // shift register number to the 4th and 5th byte (from the right) of the machine code word
                 machineCodeWord |= (registerNumber << 16);
-                cout << "machineCodeWord: " << hex << machineCodeWord << endl;
                 machineCodeWord |= (registerNumber << 20);
-                cout << "machineCodeWord: " << hex << machineCodeWord << endl;
                 
                 // write machine code word to the current section
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
@@ -444,13 +525,13 @@ int secondPass(){
                 // set the LC of the current section to the sectionLCMap just in case
                 sectionLCMap[currentSection] = LC;
                 // for each section, go through machine code and write out (on std::cout) in hex format each byte of the section size
-                cout << "-------------------------------------" << endl;
+                std::cout << "-------------------------------------" << endl;
                 for (int j = 0; j < symbolTable.size(); j++){
-                    cout << "-------------------------------------" << endl;
+                    std::cout << "-------------------------------------" << endl;
                     if (symbolTable[j].is_section){
-                        cout << "SEKCIJA: " << symbolTable[j].name << endl;
+                        std::cout << "SEKCIJA: " << symbolTable[j].name << endl;
                         for (int k = 0; k < symbolTable[j].machineCode.size(); k++){
-                            cout << hex << symbolTable[j].machineCode[k] << endl;
+                            std::cout << hex << symbolTable[j].machineCode[k] << endl;
                         }
                     }
                 }
