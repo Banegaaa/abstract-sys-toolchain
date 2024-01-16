@@ -122,6 +122,21 @@ void jumpInstructions(int &LC, int &i){
         }
     
     }
+    else {  // Literal
+        // check if we need to add literal to pool of literals
+        if (tokenList[i].value == DEC_LITERAL){
+            tempSymbol = symbolExists(currentSection);
+            if (!canFitIn12Bits(tokenList[i].name, i)){
+                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), LC, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
+            }
+        }
+        else if (tokenList[i].value == HEX_LITERAL){
+            tempSymbol = symbolExists(currentSection);
+            if (!canFitIn12Bits(tokenList[i].name, i)){
+                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), LC, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
+            }
+        }
+    }
     LC += 4;
 }
 

@@ -16,6 +16,7 @@ extern int getSectionNumber(string name);
 extern int LC;
 extern string currentSection;
 extern int currentSectionNumber;
+extern bool canFitIn12Bits(string valueStr, int i);
 
 string tempSymbolNameSecondPass;
 Symbol* tempSymbolSecondPass;
@@ -43,38 +44,6 @@ Symbol* getSectionSymbol(string name){
     return NULL;
 }
 
-
-// we need a function that checks if the given int value can be stored in 3 bytes
-bool canBeStoredIn3Bytes(int i){
-    if (tokenList[i].value == DEC_LITERAL){
-        unsigned int temp = stoi(tokenList[i].name);
-
-        // max value representable in 12 bits (signed)  -> 2^11 - 1
-        if (temp > 2047){
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-    else {
-        // tokenList[i].value == HEX_LITERAL
-        unsigned int temp = hexToInt(tokenList[i].name);
-
-        // count the number of bits in the number
-        int count = 0;
-        while (temp){
-            count++;
-            temp >>= 1;
-        }
-        if (count > 12){
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-}
 
 int literalExists(int value){ // returns the index of the literal if it exists in the current section, -1 otherwise
     tempSymbolSecondPass = getSectionSymbol(currentSection);
@@ -116,7 +85,7 @@ void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){
 void callAndJmpCase(int &LC, int &i){
     int operation = tokenList[i].value; // CALL or JMP, we'll use this to set the machine code word
     i++;
-    int index;
+    int index;  // literal index, if needed
     // *** we have two different instruction codes, one if the literal/symbol_value can fit in 3 bytes and another one if it can't ***
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
         if (tokenList[i].value == DEC_LITERAL){
@@ -126,7 +95,7 @@ void callAndJmpCase(int &LC, int &i){
             value = hexToInt(tokenList[i].name);
         }
 
-        if (canBeStoredIn3Bytes(i)){
+        if (canFitIn12Bits(tokenList[i].name, i)){
             if (operation == CALL){
                 machineCodeWord = 0x20F00000;
             }
@@ -162,6 +131,105 @@ void callAndJmpCase(int &LC, int &i){
         else {  // operation == JMP
             machineCodeWord = 0x38F00000;
         }
+
+        tempSymbolSecondPass = symbolExists(tokenList[i].name);
+        value = tempSymbolSecondPass->value;
+        int symbolIndex = tempSymbolSecondPass->number;
+
+        // TODO: create a relocation entry
+
+        tempSymbolSecondPass = getSectionSymbol(currentSection);
+        index = tempSymbolSecondPass->literals.size();
+        Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
+        tempSymbolSecondPass->addLiteral(newLiteral);
+
+        // set index to the last 3 bytes of the literal
+        machineCodeWord |= index;
+    }
+
+    tempSymbolSecondPass = getSectionSymbol(currentSection);
+    tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+    LC += 4;
+}
+
+
+void jumpInstructionsCase(int &LC, int &i){
+    int operation = tokenList[i].value; // BNE, BEQ, BGT
+    i++; // get %
+    i++; // get register
+    int reg1 = stoi(tokenList[i].name.substr(1));
+    
+    i++; // get ,
+    i++; // get %
+    i++; // get register
+    int reg2 = stoi(tokenList[i].name.substr(1));
+
+    i++; // get ,
+    i++; // get operand
+
+    int index;  // literal index, if needed
+
+    if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
+        if (tokenList[i].value == DEC_LITERAL){
+            value = stoi(tokenList[i].name);
+        }
+        else if (tokenList[i].value == HEX_LITERAL){
+            value = hexToInt(tokenList[i].name);
+        }
+
+        if (canFitIn12Bits(tokenList[i].name, i)){
+            if (operation == BEQ){
+                machineCodeWord = 0x31F00000;
+            }
+            else if (operation == BNE){
+                machineCodeWord = 0x32F00000;
+            }
+            else {  // operation == BGT
+                machineCodeWord = 0x33F00000;
+            }
+
+            machineCodeWord |= (reg1 << 16);
+            machineCodeWord |= (reg2 << 12);
+            machineCodeWord |= value;
+        }
+        else {
+            if (operation == BEQ){
+                machineCodeWord = 0x39F00000;
+            }
+            else if (operation == BNE){
+                machineCodeWord = 0x3AF00000;
+            }
+            else {  // operation == BGT
+                machineCodeWord = 0x3BF00000;
+            }
+
+            index = literalExists(value);
+            if (index == -1){
+                // create a new literal
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+                index = tempSymbolSecondPass->literals.size();
+                Literal* newLiteral = new Literal(value, LC, sizeof(value), index, -1);
+                tempSymbolSecondPass->addLiteral(newLiteral);
+            }
+            machineCodeWord |= (reg1 << 16);
+            machineCodeWord |= (reg2 << 12);
+            machineCodeWord |= index;
+        }
+    }
+    else {  // tokenList[i].value == NAME
+        // IN ANY CASE, THE VALUE OF THE SYMBOL WILL BE SET IN THE POOL OF LITERALS (machineCodeWord = mem32[...])
+        if (operation == BEQ){
+            machineCodeWord = 0x39F00000;
+        }
+        else if (operation == BNE){
+            machineCodeWord = 0x3AF00000;
+        }
+        else {  // operation == BGT
+            machineCodeWord = 0x3BF00000;
+        }
+
+        machineCodeWord |= (reg1 << 16);
+        machineCodeWord |= (reg2 << 12);
 
         tempSymbolSecondPass = symbolExists(tokenList[i].name);
         value = tempSymbolSecondPass->value;
@@ -452,6 +520,19 @@ int secondPass(){
             case SHR:
                 twoRegisterInstructionMachineCode(0x71000000, LC, i);
                 break;
+
+            case BEQ:
+                jumpInstructionsCase(LC, i);
+                break;
+            
+            case BNE:
+                jumpInstructionsCase(LC, i);
+                break;
+            
+            case BGT:
+                jumpInstructionsCase(LC, i);
+                break;
+
 
             case LD:
                 // TODO: write machine code for LD
