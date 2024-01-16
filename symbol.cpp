@@ -51,18 +51,17 @@ void Symbol::set1ByteOfMachineCode(int location, int value){
 }
 
 void Symbol::set4BytesOfMachineCode(int location, int value){
-    // // Set the value at the location in the machine code array
-    machineCode.push_back(value);
-    // std::cout << "FIRST WE STORE: " << value / 0x1000000 << std::endl;
-    // // // Set the value at the location + 1 in the machine code array
+    // // std::cout << "FIRST WE STORE: " << value / 0x1000000 << std::endl;
+    // machineCode.push_back(value / 0x1000000);
+    // // std::cout << "SECOND WE STORE: " << value / 0x10000 % 0x100 << std::endl;
     // machineCode.push_back(value / 0x10000 % 0x100);
-    // std::cout << "SECOND WE STORE: " << value / 0x10000 % 0x100 << std::endl;
-    // // // Set the value at the location + 2 in the machine code array
+    // // std::cout << "THIRD WE STORE: " << value / 0x100 % 0x100 << std::endl;
     // machineCode.push_back(value / 0x100 % 0x100);
-    // std::cout << "THIRD WE STORE: " << value / 0x100 % 0x100 << std::endl;
-    // // // Set the value at the location + 3 in the machine code array
+    // // std::cout << "FOURTH WE STORE: " << value % 0x100 << std::endl;
     // machineCode.push_back(value % 0x100);
-    // std::cout << "FOURTH WE STORE: " << value % 0x100 << std::endl;
+    
+    machineCode.push_back(value);
+    
     // // for (int i = 0; i < machineCode.size(); i++){
     // //     std::cout << "MACHINE CODE: " << machineCode[i] << std::endl;
     // // }

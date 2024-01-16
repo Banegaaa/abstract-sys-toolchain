@@ -1,3 +1,5 @@
 .section prva_sekcija
-iret
+call 2048
+call 5
+call 2048
 .end

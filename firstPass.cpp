@@ -47,6 +47,22 @@ int getSectionNumber(string name){
     return -1;
 }
 
+
+bool canFitIn12Bits(string valueStr, int i){
+    if (tokenList[i].value == DEC_LITERAL){
+        int value = stoi(valueStr);
+        return value <= 2047;
+    }
+    else if (tokenList[i].value == HEX_LITERAL){
+        int value = hexToInt(valueStr);
+        return value <= 2047;
+    }
+    else{
+        std::cout << "Error: Invalid call value" << endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
 void jmpAndCallCase(int &LC, int &i){
     i++; // get call value
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL || tokenList[i].value == NAME){
@@ -55,6 +71,21 @@ void jmpAndCallCase(int &LC, int &i){
             tempSymbol = symbolExists(tokenList[i].name);
             if (tempSymbol == nullptr){
                 symbolTable.push_back(Symbol(tokenList[i].name, -1, 0, false, false, symbolTable.size(), false)); // TODO: check global flag
+            }
+        }
+        else {
+            // check if we need to add literal to pool of literals
+            if (tokenList[i].value == DEC_LITERAL){
+                tempSymbol = symbolExists(currentSection);
+                if (!canFitIn12Bits(tokenList[i].name, i)){
+                    tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), LC, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                }
+            }
+            else if (tokenList[i].value == HEX_LITERAL){
+                tempSymbol = symbolExists(currentSection);
+                if (!canFitIn12Bits(tokenList[i].name, i)){
+                    tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), LC, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                }
             }
         }
         LC += 4;
@@ -475,6 +506,15 @@ int firstPass(){
                 std::cout << "Symbol table:" << endl;
                 for (int i = 0; i < symbolTable.size(); i++){
                     std::cout << symbolTable[i].to_string() << endl;
+                }
+
+                std::cout << "LITERALI" << endl;
+                for (int i = 0; i < symbolTable.size(); i++){
+                    if (symbolTable[i].is_section && symbolTable[i].literals.size() > 0){
+                        for (int j = 0; j < symbolTable[i].literals.size(); j++){
+                            std::cout << symbolTable[i].literals[j] << endl;
+                        }
+                    }
                 }
                 return EXIT_SUCCESS;
             
