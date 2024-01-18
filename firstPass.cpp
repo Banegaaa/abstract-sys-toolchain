@@ -295,9 +295,13 @@ void storeOperand(int &LC, int i){
         // OPERAND == literal || hex_literal
         if (!canFitIn12Bits(tokenList[i].name, i)){
             tempSymbol = symbolExists(currentSection);
-            tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), LC, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
+            if (tokenList[i].value == DEC_LITERAL){
+                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), LC, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
+            }
+            else {  // HEX_LITERAL
+                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), LC, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
+            }
         }
-        
         LC += 4;
     }
     else if (tokenList[i].value == NAME){

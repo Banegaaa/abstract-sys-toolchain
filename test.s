@@ -1,3 +1,5 @@
 .section prva_sekcija
-ld $2048, %r15
+st %r15, [%r2 + main]
+main:
+main2:
 .end

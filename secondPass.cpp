@@ -505,6 +505,138 @@ void loadInstruction(int &LC, int &i){
 }
 
 
+void storeInstruction(int &LC, int &i){
+    i++; // get %
+    i++; // get register
+    int reg1 = stoi(tokenList[i].name.substr(1));  // regC
+
+    i++; // get ,
+    i++; // get operand
+
+    int index; // literal index, if needed
+
+    if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
+        
+        if (tokenList[i].value == DEC_LITERAL){
+            value = stoi(tokenList[i].name);
+        }
+        else if (tokenList[i].value == HEX_LITERAL){
+            value = hexToInt(tokenList[i].name);
+        }
+        
+        if (canFitIn12Bits(tokenList[i].name, i)){
+            // OC = 0x8, M = 0x0, A = 0, B = 0, C = regNum, D = value
+            machineCodeWord = 0x80000000;
+            machineCodeWord |= (reg1 << 12);  // regC
+            machineCodeWord |= value;
+        }
+        else {
+            // OC = 0x8, M = 0x2, A = 15 (pc), B = 0, C = regNum, D = value
+            machineCodeWord = 0x82000000;
+            registerNumber = 15;  // pc
+            machineCodeWord |= (registerNumber << 20);  // regA
+            machineCodeWord |= (reg1 << 12);  // regC
+
+            index = literalExists(value);  // it will exist, because we set it in the first pass
+            machineCodeWord |= index;
+        }
+
+        // write machine code word to the current section
+        tempSymbolSecondPass = getSectionSymbol(currentSection);
+        tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+
+        LC += 4;
+    }
+    else if (tokenList[i].value == NAME){
+        // get the symbol value
+        tempSymbolSecondPass = symbolExists(tokenList[i].name);
+        value = tempSymbolSecondPass->value;
+        int symbolIndex = tempSymbolSecondPass->number;
+
+        tempSymbolSecondPass = getSectionSymbol(currentSection);
+        index = tempSymbolSecondPass->literals.size();
+        tempSymbolSecondPass->literals.push_back(new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), symbolIndex));
+
+        // OC = 0x8, M = 0x2, A = 15 (pc), B = 0, C = regNum, D = index
+        machineCodeWord = 0x82000000;
+        registerNumber = 15;  // pc
+        machineCodeWord |= (registerNumber << 20);  // regA
+        machineCodeWord |= (reg1 << 12);  // regC
+        machineCodeWord |= index;
+
+        // write machine code word to the current section
+        tempSymbolSecondPass = getSectionSymbol(currentSection);
+        tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+
+        LC += 4;
+    }
+    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT){
+        // operand == [%ri]
+        machineCodeWord = 0x80000000;
+
+        // We'll get register name from [%ri] by removing [% and ]
+        registerName = tokenList[i].name.substr(2, tokenList[i].name.size() - 3);
+        registerNumber = stoi(registerName.substr(1));
+
+        machineCodeWord |= (registerNumber << 20);  // regA
+        machineCodeWord |= (reg1 << 12);  // regC
+
+        // write machine code word to the current section
+        tempSymbolSecondPass = getSectionSymbol(currentSection);
+        tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+
+        LC += 4;
+    }
+    else if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT ||
+    tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT){
+
+        // operand is [%ri + D]
+        machineCodeWord = 0x80000000;
+
+        // first we need to extract i and D
+        string operand = tokenList[i].name;
+        size_t percentPos = operand.find('%');
+        size_t plusPos = operand.find('+');
+        size_t closingBracketPos = operand.find(']');
+
+        if (percentPos != std::string::npos && plusPos != std::string::npos && closingBracketPos != std::string::npos) {
+            // Extract the substring between '%' and '+', and between '+' and ']'
+            std::string iStr = operand.substr(percentPos + 1, plusPos - percentPos - 1);  // "ri"  -> we'll remove the r before int conversion
+            std::string DStr = operand.substr(plusPos + 1, closingBracketPos - plusPos - 1); // " D" -> we'll remove the space before int conversion
+
+            // Convert the extracted substrings to integers
+            int i = std::stoi(iStr.substr(1));  // regA
+            int D;
+            if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT){
+                D = std::stoi(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
+            }
+            else {
+                D = hexToInt(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
+            }
+
+            machineCodeWord |= (i << 20);  // regA
+            machineCodeWord |= (reg1 << 12);  // regC
+            machineCodeWord |= D;  // D
+
+            // write machine code word to the current section
+            tempSymbolSecondPass = getSectionSymbol(currentSection);
+            tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
+
+            LC += 4;
+        }
+        else {
+            cout << "ERROR: Invalid operand" << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT){
+        cout << "ERROR: Invalid operand, the value of the symbol is not known during asembling, so st " << tokenList[i].name << " cannot be done." << endl;
+        exit(EXIT_FAILURE);
+        // TODO: Check, maybe we can do this, it doesn't make sense not to have it for either ld or st
+    }
+}
+
+
 
 int secondPass(){
     LC = 0;
@@ -793,7 +925,7 @@ int secondPass(){
                 break;
 
             case ST:
-                // TODO: write machine code for ST
+                storeInstruction(LC, i);
                 break;
 
             case CSRRD:
