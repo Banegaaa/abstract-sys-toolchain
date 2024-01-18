@@ -1,5 +1,3 @@
 .section prva_sekcija
-st %r1, [%r15 + main]
-main:
-    add %r1, %r2
+ld $2048, %r15
 .end

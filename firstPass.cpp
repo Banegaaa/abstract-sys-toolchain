@@ -217,7 +217,6 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         i++; // get literal || hex_literal || name
         int value = 0;
         if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
-
             // OPERAND == $literal || $hex_literal
             if (tokenList[i].value == DEC_LITERAL){
                 value = stoi(tokenList[i].name);
@@ -228,7 +227,6 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
             if (!canFitIn12Bits(tokenList[i].name, i)){
                 tempSymbol = symbolExists(currentSection);
                 tempSymbol->addLiteral(new Literal(value, LC, sizeof(value), tempSymbol->literals.size(), -1));
-
             }
         }
         else {
