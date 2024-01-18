@@ -356,6 +356,11 @@ void storeOperand(int &LC, int i){
         }
         LC += 4;
     }
+    else {
+        // Invalid operand
+        std::cout << "Error: Invalid store value" << endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
 int firstPass(){
