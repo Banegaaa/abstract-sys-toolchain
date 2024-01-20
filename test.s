@@ -1,5 +1,7 @@
 .section prva_sekcija
-st %r15, [%r2 + main]
+st %r15, [%r2 + 2]
 main:
-main2:
+st %r15, main
 .end
+
+# NOT FUCKING WORKING BRO

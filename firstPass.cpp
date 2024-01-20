@@ -246,6 +246,7 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
             exit(EXIT_FAILURE);
         }
         // TODO: Should we put literal in the literal pool?
+        // -> no need, if its >12b => error
         
         LC += 4;
     }

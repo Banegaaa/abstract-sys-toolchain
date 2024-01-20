@@ -86,6 +86,7 @@ void callAndJmpCase(int &LC, int &i){
     int operation = tokenList[i].value; // CALL or JMP, we'll use this to set the machine code word
     i++;
     int index;  // literal index, if needed
+    
     // *** we have two different instruction codes, one if the literal/symbol_value can fit in 3 bytes and another one if it can't ***
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
         if (tokenList[i].value == DEC_LITERAL){
@@ -293,6 +294,8 @@ void loadInstruction(int &LC, int &i){
             tempSymbolSecondPass = getSectionSymbol(currentSection);
             tempSymbolSecondPass->literals.push_back(new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), symbolIndex));
 
+            // TODO: Relocation entry
+
             // machine code just as the case above (where the value doesn't fit in 12 bits)
             machineCodeWord = 0x92000000;
             registerNumber = 15;  // pc
@@ -326,7 +329,7 @@ void loadInstruction(int &LC, int &i){
             value = hexToInt(tokenList[i].name);
         }
 
-        // 1. B = 15, C = 0, A = regNum  (gpr[A] <= mem32[pc + D])
+        // 1. B = 15, C = 0, A = regNum  (gpr[A] <= mem32[pc + D])  //TODO: should this be gpr[A] <= PC + D?
 
         machineCodeWord = 0x92000000;
         registerNumber = 15;  // pc
@@ -838,15 +841,14 @@ int secondPass(){
                 registerName = tokenList[i].name;
                 // remove "r" (first letter) from register name
                 registerNumber = stoi(registerName.substr(1));
-                // shift register number to the 5th byte (from the right) of the machine code word
-                machineCodeWord |= (registerNumber << 16);
+                machineCodeWord |= (registerNumber << 12);  // gprS
+                
                 i++; // get ,
                 i++; // get %
                 i++; // get register
                 registerName = tokenList[i].name;
                 registerNumber = stoi(registerName.substr(1));
-                // shift register number to the 4th byte (from the right) of the machine code word
-                machineCodeWord |= (registerNumber << 12);
+                machineCodeWord |= (registerNumber << 16);  // gprD
                 
                 // write machine code word to the current section
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
@@ -918,7 +920,6 @@ int secondPass(){
             case BGT:
                 jumpInstructionsCase(LC, i);
                 break;
-
 
             case LD:
                 loadInstruction(LC, i);
