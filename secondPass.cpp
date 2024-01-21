@@ -29,6 +29,8 @@ unsigned int machineCodeWord;
 int registerNumber;
 string registerName;
 
+RelocationSymbol* relSym;
+
 // we'll need a map of section names and their current LC values
 std::unordered_map<std::string, int> sectionLCMap;
 
@@ -137,12 +139,14 @@ void callAndJmpCase(int &LC, int &i){
         value = tempSymbolSecondPass->value;
         int symbolIndex = tempSymbolSecondPass->number;
 
-        // TODO: create a relocation entry
-
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
         Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
+
+        // Create a relocation entry
+        relSym = new RelocationSymbol(symbolIndex, LC, index);
+        tempSymbolSecondPass->relocationTable.push_back(relSym);
 
         // set index to the last 3 bytes of the literal
         machineCodeWord |= index;
@@ -234,14 +238,16 @@ void jumpInstructionsCase(int &LC, int &i){
 
         tempSymbolSecondPass = symbolExists(tokenList[i].name);
         value = tempSymbolSecondPass->value;
-        int symbolIndex = tempSymbolSecondPass->number;
-
-        // TODO: create a relocation entry
+        int symbolIndex = tempSymbolSecondPass->number;        
 
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
         Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
+
+        // Create a relocation entry
+        relSym = new RelocationSymbol(symbolIndex, LC, index);
+        tempSymbolSecondPass->relocationTable.push_back(relSym);
 
         // set index to the last 3 bytes of the literal
         machineCodeWord |= index;
@@ -294,7 +300,9 @@ void loadInstruction(int &LC, int &i){
             tempSymbolSecondPass = getSectionSymbol(currentSection);
             tempSymbolSecondPass->literals.push_back(new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), symbolIndex));
 
-            // TODO: Relocation entry
+            // Create relocation entry
+            relSym = new RelocationSymbol(symbolIndex, LC, tempSymbolSecondPass->literals.size() - 1);
+            tempSymbolSecondPass->relocationTable.push_back(relSym);
 
             // machine code just as the case above (where the value doesn't fit in 12 bits)
             machineCodeWord = 0x92000000;
@@ -382,6 +390,10 @@ void loadInstruction(int &LC, int &i){
         index = tempSymbolSecondPass->literals.size();
         Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
+
+        // Create a relocation entry
+        relSym = new RelocationSymbol(symbolIndex, LC, index);
+        tempSymbolSecondPass->relocationTable.push_back(relSym);
 
         // set index to the last 3 bytes of the literal
         machineCodeWord |= index;
@@ -560,6 +572,10 @@ void storeInstruction(int &LC, int &i){
         index = tempSymbolSecondPass->literals.size();
         tempSymbolSecondPass->literals.push_back(new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), symbolIndex));
 
+        // Create a relocation entry
+        relSym = new RelocationSymbol(symbolIndex, LC, tempSymbolSecondPass->literals.size() - 1);
+        tempSymbolSecondPass->relocationTable.push_back(relSym);
+
         // OC = 0x8, M = 0x2, A = 15 (pc), B = 0, C = regNum, D = index
         machineCodeWord = 0x82000000;
         registerNumber = 15;  // pc
@@ -568,7 +584,6 @@ void storeInstruction(int &LC, int &i){
         machineCodeWord |= index;
 
         // write machine code word to the current section
-        tempSymbolSecondPass = getSectionSymbol(currentSection);
         tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
 
         LC += 4;
@@ -702,10 +717,11 @@ int secondPass(){
                             value = tempSymbolSecondPass->value;
                         }
                         else {
-                            // write zeros to the machine code
-                            // and create a relocation entry
+                            // Write zeros to the machine code and create a relocation entry
                             value = 0;
-                            // TODO: create a relocation entry
+                            relSym = new RelocationSymbol(tempSymbolSecondPass->number, LC);
+                            tempSymbolSecondPass = getSectionSymbol(currentSection);
+                            tempSymbolSecondPass->relocationTable.push_back(relSym);
                         }
                     }
                     // for each value write 4 bytes of machine code to the current section
