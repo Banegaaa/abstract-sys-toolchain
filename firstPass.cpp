@@ -16,7 +16,7 @@ int tempInt; // needed for LD/ST instruction token value (because we need to kno
 
 
 
-vector<Symbol> symbolTable;
+extern vector<Symbol> symbolTable;
 
 // helpers:
 string tempSymbolName = "";
@@ -238,7 +238,7 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         string extracted = operand.substr(operand.find(delimiter) + 1, operand.length() - 2);
         //remove blank space on the begginning of extracted, and also remove ] from the end
         extracted = extracted.substr(1, extracted.length() - 2);
-        cout << "FULLY EXTRACTED: " << extracted << endl;
+        cout << "FULLY EXTRACTED: " << stoi(extracted) << endl;
 
         
         if (stoi(extracted) > 2047){  // TODO: converted into signed?

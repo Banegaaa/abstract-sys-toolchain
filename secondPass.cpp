@@ -465,17 +465,17 @@ void loadInstruction(int &LC, int &i){
 
         if (percentPos != std::string::npos && plusPos != std::string::npos && closingBracketPos != std::string::npos) {
             // Extract the substring between '%' and '+', and between '+' and ']'
-            std::string iStr = operand.substr(percentPos + 1, plusPos - percentPos - 1);
-            std::string DStr = operand.substr(plusPos + 1, closingBracketPos - plusPos - 1);
+            std::string iStr = operand.substr(percentPos + 1, plusPos - percentPos - 1); // ri -> we'll remove the r before int conversion
+            std::string DStr = operand.substr(plusPos + 1, closingBracketPos - plusPos - 1);  // " D" -> we'll remove the space before int conversion
 
             // Convert the extracted substrings to integers
-            int i = std::stoi(iStr);  // regB
+            registerNumber = std::stoi(iStr.substr(1));
             int D;
             if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT){
-                D = std::stoi(DStr);  // D (this literal will definately fit in 12 bits)
+                D = std::stoi(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
             }
             else {
-                D = hexToInt(DStr);  // D (this literal will definately fit in 12 bits)
+                D = hexToInt(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
             }
 
             machineCodeWord = 0x92000000;
@@ -608,7 +608,7 @@ void storeInstruction(int &LC, int &i){
             std::string DStr = operand.substr(plusPos + 1, closingBracketPos - plusPos - 1); // " D" -> we'll remove the space before int conversion
 
             // Convert the extracted substrings to integers
-            int i = std::stoi(iStr.substr(1));  // regA
+            registerNumber = std::stoi(iStr.substr(1));  // regA
             int D;
             if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT){
                 D = std::stoi(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
@@ -617,7 +617,7 @@ void storeInstruction(int &LC, int &i){
                 D = hexToInt(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
             }
 
-            machineCodeWord |= (i << 20);  // regA
+            machineCodeWord |= (registerNumber << 20);  // regA
             machineCodeWord |= (reg1 << 12);  // regC
             machineCodeWord |= D;  // D
 
