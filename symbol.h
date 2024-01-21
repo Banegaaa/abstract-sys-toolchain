@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include "literal.h"
+#include "relocSymbol.h"
 using namespace std;
 
 class Symbol {
@@ -18,6 +19,7 @@ class Symbol {
     std::vector<int> machineCode;
     int machineCodeSize;
     vector<Literal*> literals;
+    vector<RelocationSymbol*> relocationTable;
 
 
     Symbol(std::string name, int section, int lc_value, bool is_global, bool is_section, int number, bool is_defined, int sectionSize=0);
