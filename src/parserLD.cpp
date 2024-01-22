@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include "../inc/parserLD.h"
 
 ParserLD::ParserLD(string inputFileName){
@@ -32,27 +33,50 @@ string ParserLD::collapseWhitespaces(const string& input) {
     return result;
 }
 
-vector<string> ParserLD::tokenize(){
-    // The idea here is to split the line into non-blank tokens and return them in a vector for parsing.
-    string line;
+vector<string> ParserLD::tokenize(string line){
+    std::vector<std::string> tokens;
+    std::istringstream iss(collapseWhitespaces(line));
+    std::string token;
 
-    while (getline(this->inputFile, line)){
-        
-        // Replace multiple whitespaces with a single space which we will use for delimiter
-        line = this->collapseWhitespaces(line);
-
-        /*
-            3 cases:
-                - SymbolTable:
-                - LiteralTable:
-                - RelocationTable:
-
-            Go through the file, find these 3 sections, and parse them.
-        */
+    while (std::getline(iss, token, ' ')) {
+        tokens.push_back(token);
     }
-
+    return tokens;
 }
 
 void ParserLD::initialize(){
-    // TODO: 
+    std::ifstream inputFileStream(this->inputFileName);  // TODO: Check if we need this
+
+    if (!inputFile.is_open()){
+        cout << "Input file not opened" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    string line;
+    enum TableType { NONE, SYMBOL, LITERAL, RELOCATION };
+    TableType currentTable = NONE;
+
+    while (std::getline(this->inputFile, line)){
+        std::vector<std::string> tokens = tokenize(line);
+
+        if (tokens.size() > 0){
+            if (tokens[0] == "SymbolTable:"){
+                cout << "SymbolTable: PARSING" << endl;
+                currentTable = SYMBOL;
+                continue;
+            }
+            else if (tokens[0] == "LiteralTable:"){
+                cout << "LiteralTable: PARSING" << endl;
+                currentTable = LITERAL;
+                continue;
+            }
+            else if (tokens[0] == "RelocationTable:"){
+                cout << "RelocationTable: PARSING" << endl;
+                currentTable = RELOCATION;
+                continue;
+            }
+        }
+    }
+
+
 }

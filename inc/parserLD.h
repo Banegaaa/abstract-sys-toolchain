@@ -15,7 +15,7 @@ class ParserLD {
     string inputFileName;
 
     vector<SymbolLD*> symbolTable;  // For symbols and sections
-    vector<string> tokenize();
+    vector<string> tokenize(string line);
     void initialize();
 
     ParserLD(string inputFileName);

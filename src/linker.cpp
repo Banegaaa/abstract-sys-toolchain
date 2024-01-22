@@ -16,6 +16,10 @@ Linker::Linker(bool hexFlag, unordered_map<string, int> placeSections, vector<st
         ParserLD* parser = new ParserLD(inputFileNames[i]);
         this->parsers.push_back(parser);
     }
+
+    for (int i = 0; i < this->parsers.size(); i++){
+        this->parsers[i]->initialize();
+    }
 }
 
 Linker::~Linker(){
