@@ -1,3 +1,5 @@
+#pragma once
+
 class LiteralLD {
     public:
     int value;

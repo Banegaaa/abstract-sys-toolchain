@@ -21,6 +21,28 @@ vector<Symbol> symbolTable;
 ifstream inputFile;
 ofstream outputFile;
 
+string collapseWhitespaces(const string& input) {
+    string result;
+    bool previousIsSpace = false;
+    char ch;
+
+    for (int i = 0; i < input.size(); i++) {
+        ch = input[i];
+        if (std::isspace(ch)) {
+            if (!previousIsSpace) {
+                result += ' ';
+                previousIsSpace = true;
+            }
+        } else {
+            result += ch;
+            previousIsSpace = false;
+        }
+    }
+
+    return result;
+}
+
+
 int main(int argc, char *argv[])
 {
 
@@ -82,7 +104,6 @@ int main(int argc, char *argv[])
     
     // PRINT OUT THE SYMBOL TABLE
     outputFile << "SymbolTable:" << endl;
-    outputFile << endl;
 
     for (int i = 0; i < symbolTable.size(); i++){
 
@@ -103,31 +124,18 @@ int main(int argc, char *argv[])
             outputFile << std::internal << std::setw(3) << "V";
         outputFile << std::internal << std::setw(3) << symbolTable[i].section;    // Section number
         outputFile << std::internal << std::setw(3) << symbolTable[i].lc_value;   // LC value
+        if (symbolTable[i].is_section)                                              // Size
+            outputFile << std::internal << std::setw(5) << symbolTable[i].sectionSize;
+        else
+            outputFile << std::internal << std::setw(5) << "-";
         outputFile << endl;
     }
 
     outputFile << endl;
 
-
-    // PRINT OUT THE SECTION TABLE
-
-    outputFile << "SectionTable:" << endl;
-    outputFile << endl;
-    for (int i = 0; i < symbolTable.size(); i++){
-        if (symbolTable[i].is_section){
-            outputFile << std::setw(20) << symbolTable[i].name;                             // Name
-            outputFile << std::internal << std::setw(4) << symbolTable[i].sectionSize;      // Size
-            outputFile << endl;
-        }
-    }
-
-    outputFile << endl;
-
-
     // PRINT OUT THE LITERAL TABLE
 
     outputFile << "LiteralTable:" << endl;
-    outputFile << endl;
     for (int i = 0; i < symbolTable.size(); i++){
         if (symbolTable[i].is_section){
             for (int j = 0; j < symbolTable[i].literals.size(); j++){
@@ -137,11 +145,42 @@ int main(int argc, char *argv[])
                 outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->index;         // Index
                 if (symbolTable[i].literals[j]->symbolIndex != -1)                                        // Symbol index
                     outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->symbolIndex;
+                else
+                    outputFile << std::internal << std::setw(4) << "-";
                 outputFile << endl;
             }
         }
     }
     outputFile << endl;
+
+    // PRINT OUT THE RELOCATION TABLE
+    outputFile << "RelocationTable:" << endl;
+    for (int i = 0; i < symbolTable.size(); i++){
+        if (symbolTable[i].is_section){
+            for (int j = 0; j < symbolTable[i].relocationTable.size(); j++){
+                outputFile << std::setw(5) << symbolTable[i].relocationTable[j]->symbolIndex;                     // Symbol index
+                outputFile << std::internal << std::setw(4) << symbolTable[i].relocationTable[j]->location;       // Location
+                outputFile << std::internal << std::setw(4) << symbolTable[i].relocationTable[j]->literalIndex;   // Index
+                outputFile << endl;
+            }
+        }
+    }
+
+    outputFile.close();
+
+    // Go through the output file line by line and for each line call collapseWhitespaces function and print out the line after that
+    string line;
+    ifstream outputFile2;
+    outputFile2.open(argv[2]);
+    if (!outputFile2.is_open()){
+        cout << "Output file not opened" << endl;
+        return EXIT_FAILURE;
+    }
+
+    while (getline(outputFile2, line)){
+        line = collapseWhitespaces(line);
+        cout << line << endl;
+    }
 
     return EXIT_SUCCESS;
 }

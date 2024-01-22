@@ -1,7 +1,8 @@
+#pragma once
 #include <string>
 #include <vector>
 #include "literalLD.h"
-#include "relocSymbolLD.h"
+#include "relocSymbolLd.h"
 using namespace std;
 
 
