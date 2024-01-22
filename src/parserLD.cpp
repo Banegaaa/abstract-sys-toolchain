@@ -76,6 +76,20 @@ void ParserLD::initialize(){
                 continue;
             }
         }
+
+        // switch(currentTable){
+        //     case SYMBOL:
+        //         this->parseSymbolTableLine(tokens);
+        //         break;
+        //     case LITERAL:
+        //         this->parseLiteralTableLine(tokens);
+        //         break;
+        //     case RELOCATION:
+        //         this->parseRelocationTableLine(tokens);
+        //         break;
+        //     default:
+        //         break;
+        }
     }
 
 
