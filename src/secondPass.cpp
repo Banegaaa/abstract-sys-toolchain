@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "token.h"
-#include "define.h"
-#include "symbol.h"
+#include "../inc/token.h"
+#include "../inc/define.h"
+#include "../inc/symbol.h"
 using namespace std;
 
 extern vector<Token> tokenList;

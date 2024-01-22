@@ -1,5 +1,5 @@
 %{
-    #include "define.h"
+    #include "inc/define.h"
 %}
 
 %%

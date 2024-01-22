@@ -3,10 +3,10 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
-#include "symbol.h"
-#include "token.h"
-#include "firstPass.h"
-#include "secondPass.h"
+#include "../inc/symbol.h"
+#include "../inc/token.h"
+#include "../inc/firstPass.h"
+#include "../inc/secondPass.h"
 
 using namespace std;
 

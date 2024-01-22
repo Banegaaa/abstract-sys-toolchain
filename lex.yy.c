@@ -595,7 +595,7 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "rules.l"
 #line 2 "rules.l"
-    #include "define.h"
+    #include "inc/define.h"
 #line 599 "lex.yy.c"
 #line 600 "lex.yy.c"
 

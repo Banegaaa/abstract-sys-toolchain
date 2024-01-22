@@ -1,4 +1,4 @@
-#include "literal.h"
+#include "../inc/literal.h"
 
 Literal::Literal(int value, int location, int size, int index, int symbolIndex){
     this->value = value;

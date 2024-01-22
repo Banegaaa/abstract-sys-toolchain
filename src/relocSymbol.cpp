@@ -1,4 +1,4 @@
-#include "relocSymbol.h"
+#include "../inc/relocSymbol.h"
 
 RelocationSymbol::RelocationSymbol(int symbolIndex, int location, int literalIndex) {
     this->symbolIndex = symbolIndex;
