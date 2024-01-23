@@ -22,6 +22,10 @@ class Linker {
 
     ofstream outputFile;
 
+    vector<pair<string, pair<SymbolLD*,int> > > sections; // (file_name, (section_symbol, base_address))
+
     Linker(bool hexFlag, unordered_map<string, int> placeSections, std::vector<string> inputFileNames, string outputFileName);
     ~Linker();
+
+    void sectionPlacing();
 };

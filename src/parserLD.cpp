@@ -212,6 +212,8 @@ void ParserLD::initialize(){
             default:
                 break;
         }
+
+        // TODO: INITIALIZE MACHINE CODE FOR EACH SECTION
     }
 
     this->inputFile.close();

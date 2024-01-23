@@ -25,7 +25,7 @@ class SymbolLD {
     // section data
     string sectionName;
     int sectionSize;
-    int baseAddress;
+    int baseAddress;  // will be filled when placing sections
 
     vector<RelocSymbolLD*> relocationTable;
     vector<LiteralLD*> literalTable;  // bazen literala - on pocinje na onom locCounteru na kom se sekcija zavrsava

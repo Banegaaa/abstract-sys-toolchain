@@ -1,9 +1,11 @@
 SymbolTable:
-    0        prva_sekcija       23307136  DEF  L  S  0  0   24
+    0        prva_sekcija      178443136  DEF  L  S  0  0   27
     1                main              0  DEF  L  V  0  0    -
 LiteralTable:
-  999   c   4   0   -        prva_sekcija
-    0  14   4   1   1        prva_sekcija
+  999   f   4   0   -        prva_sekcija
+    0  17   4   1   1        prva_sekcija
 RelocationTable:
-    -  14   1        prva_sekcija
+    -  17   1        prva_sekcija
 
+Section prva_sekcija
+00 00 00 50221000 51221000 92370004 922f0000 92220000 21f00001 

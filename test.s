@@ -1,5 +1,6 @@
 .section prva_sekcija
 main:
+    .skip 3
     add %r1, %r2
     sub %r1, %r2
     ld [%r1 + 4], %r2
@@ -7,4 +8,3 @@ main:
     call main
 .end
 
-# NOT FUCKING WORKING BRO
