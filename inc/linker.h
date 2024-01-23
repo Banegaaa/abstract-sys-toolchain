@@ -28,4 +28,6 @@ class Linker {
     ~Linker();
 
     void sectionPlacing();
+
+    void fixAddresses();
 };

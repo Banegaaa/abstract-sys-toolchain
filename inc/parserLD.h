@@ -56,4 +56,17 @@ class ParserLD {
             }
         }
     }
+
+    SymbolLD* getSectionSymbolById(int id){
+        for (int i = 0; i < this->symbolTable.size(); i++){
+            if (this->symbolTable[i]->id == id){
+                if (!this->symbolTable[i]->isSection){
+                    cout << "Symbol with id " << id << " is not a section" << endl;
+                    exit(EXIT_FAILURE);
+                }
+                return this->symbolTable[i];
+            }
+        }
+        return NULL;
+    }
 };

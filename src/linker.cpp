@@ -138,3 +138,49 @@ void Linker::sectionPlacing(){
     }
 
 }
+
+
+void Linker::fixAddresses(){
+    // Go through all tables (symbol, reloc, and literal) and fix their addresses (now that we have placed all the sections)
+    
+    for (int i = 0; i < this->parsers.size(); i++){
+
+        // Symbol table (only non-section symbols)
+        for(int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
+            
+            if (!this->parsers[i]->symbolTable[j]->isSection){
+                // We need to fix the address of this symbol
+
+                // We need to find the section in which this symbol is defined
+                // We will do this by looking for the section symbol in the sections vector
+
+                string sectionName = this->parsers[i]->getSectionSymbolById(this->parsers[i]->symbolTable[j]->id)->name;
+                
+
+                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                    if (it->second.first->name.compare(sectionName) == 0){
+                        // We have found the section in which this symbol is defined
+                        // We need to add the address of this section to the value of this symbol
+                        this->parsers[i]->symbolTable[j]->value += it->second.second;
+                        break;
+                    }
+                }
+            }
+            else {
+                // It is a section, here we will fix the relocation table
+                for (int k = 0; k < this->parsers[i]->symbolTable[j]->relocationTable.size(); k++){
+                    // We need to find the symbol in the symbol table
+                    // We will do this by looking for the symbol in the symbol table
+
+                    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                        if (it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
+                            // We have found the section
+                            this->parsers[i]->symbolTable[j]->relocationTable[k]->offset += it->second.second;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
