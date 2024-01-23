@@ -83,15 +83,13 @@ void ParserLD::parseSymbolTable(vector<string> tokens){
     int LC = stoi(tokens[7]);
     if (isSection){
         int sectionSize = stoi(tokens[8]);
+        // we will add the section symbol here
+        SymbolLD* symbol = new SymbolLD(id, name, isSection, sectionSize);
+        this->symbolTable.push_back(symbol);
     }
-
-    if (isSection){
+    else {
         SymbolLD* section = new SymbolLD(id, name, value, isDefined, isGlobal, isSection, sectionNumber, LC);
         this->symbolTable.push_back(section);
-    }
-    else{
-        SymbolLD* symbol = new SymbolLD(id, name, isSection);
-        this->symbolTable.push_back(symbol);
     }
 }
 

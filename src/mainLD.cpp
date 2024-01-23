@@ -107,5 +107,7 @@ int main(int argc, char *argv[])
     // Create Linker object
 
     Linker linker(hexFlag, placeSections, inputFileNames, outputFileName);
+
+    linker.sectionPlacing();
     
 }

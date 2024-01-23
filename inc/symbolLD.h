@@ -43,10 +43,11 @@ class SymbolLD {
     };
 
     // Constructor for section symbol:
-    SymbolLD(int id, string name, bool is_section){
+    SymbolLD(int id, string name, bool is_section, int section_size){
         this->id = id;
         this->name = name;
         this->isSection = is_section;
+        this->sectionSize = section_size;
 
         // These symbols will possibly have their relocation and literal tables
     };

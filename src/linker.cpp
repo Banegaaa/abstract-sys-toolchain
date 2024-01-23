@@ -111,6 +111,8 @@ void Linker::sectionPlacing(){
                             SymbolLD* lastSectionSymbol = this->sections.back().second.first; // second = <section_symbol, address> -> first = section_symbol
                             int lastAddress = this->sections.back().second.second; // second = <section_symbol, address> -> second = address
 
+                            cout << "Velicina poslednje dodate sekcije je: " << lastSectionSymbol->sectionSize << endl;
+
                             this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, lastAddress + lastSectionSymbol->sectionSize)));
                         }
                     }
@@ -125,4 +127,14 @@ void Linker::sectionPlacing(){
             }
         }
     }
+
+    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+        std::string fileName = it->first;
+        SymbolLD* symbolPointer = it->second.first;
+        int address = it->second.second;
+
+        // Print in the specified format
+        std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << std::endl;
+    }
+
 }

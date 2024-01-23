@@ -165,21 +165,20 @@ int main(int argc, char *argv[])
                 else
                     outputFile << std::internal << std::setw(4) << symbolTable[i].relocationTable[j]->literalIndex;
                 outputFile << std::internal << std::setw(20) << symbolTable[i].name << endl;                      // Section name
-                outputFile << endl;
             }
         }
     }
 
-    // Write out each sections machine code to the output file
-    for (int i = 0; i < symbolTable.size(); i++){
-        if (symbolTable[i].is_section){
-            outputFile << "Section " << symbolTable[i].name << endl;
-            for (int j = 0; j < symbolTable[i].machineCode.size(); j++){
-                outputFile << std::setw(2) << std::setfill('0') << std::hex << (int)symbolTable[i].machineCode[j] << " ";
-            }
-            outputFile << endl;
-        }
-    }
+    // // Write out each sections machine code to the output file
+    // for (int i = 0; i < symbolTable.size(); i++){
+    //     if (symbolTable[i].is_section){
+    //         outputFile << "Section " << symbolTable[i].name << endl;
+    //         for (int j = 0; j < symbolTable[i].machineCode.size(); j++){
+    //             outputFile << std::setw(2) << std::setfill('0') << std::hex << (int)symbolTable[i].machineCode[j] << " ";
+    //         }
+    //         outputFile << endl;
+    //     }
+    // }
 
     outputFile.close();
 
