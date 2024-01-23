@@ -1,10 +1,9 @@
 SymbolTable:
-    0        prva_sekcija      210953088  DEF  L  S  0  0   24
+    0        prva_sekcija       23307136  DEF  L  S  0  0   24
     1                main              0  DEF  L  V  0  0    -
-
 LiteralTable:
-  999   c   4   0   -
-    0  14   4   1   1
-
+  999   c   4   0   -        prva_sekcija
+    0  14   4   1   1        prva_sekcija
 RelocationTable:
-    1  14   1
+    -  14   1        prva_sekcija
+

@@ -142,6 +142,7 @@ void callAndJmpCase(int &LC, int &i){
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
         Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
+        std::cout << "LC LITERALA JE: " << LC << std::endl;
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
@@ -299,6 +300,7 @@ void loadInstruction(int &LC, int &i){
 
             tempSymbolSecondPass = getSectionSymbol(currentSection);
             tempSymbolSecondPass->literals.push_back(new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), symbolIndex));
+            std::cout << "LC LITERALA JE: " << LC << std::endl;
 
             // Create relocation entry
             relSym = new RelocationSymbol(symbolIndex, LC, tempSymbolSecondPass->literals.size() - 1);
@@ -571,6 +573,7 @@ void storeInstruction(int &LC, int &i){
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
         tempSymbolSecondPass->literals.push_back(new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), symbolIndex));
+        std::cout << "LC LITERALA JE: " << LC << std::endl;
 
         // Create a relocation entry
         relSym = new RelocationSymbol(symbolIndex, LC, tempSymbolSecondPass->literals.size() - 1);

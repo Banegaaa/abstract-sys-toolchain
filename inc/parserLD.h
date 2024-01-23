@@ -23,4 +23,37 @@ class ParserLD {
     // Function to replace consecutive whitespaces with a single space (this works)
     string collapseWhitespaces(const string& input);
 
+    // Parsing of symbol, literal and relocation tables
+    void parseSymbolTable(vector<string> tokens);
+    void parseLiteralTable(vector<string> tokens);
+    void parseRelocationTable(vector<string> tokens);
+
+    SymbolLD* getSectionSymbolByName(string name);
+
+    void printSymbolTable(){
+        cout << "Symbol table:" << endl;
+        for (int i = 0; i < this->symbolTable.size(); i++){
+            cout << this->symbolTable[i]->name << " " << this->symbolTable[i]->section << " " << this->symbolTable[i]->value << endl;
+        }
+    }
+    void printLiteralTable(){
+        cout << "Literal table:" << endl;
+        for (int i = 0; i < this->symbolTable.size(); i++){
+            if (this->symbolTable[i]->isSection){
+                for (int j = 0; j < this->symbolTable[i]->literalTable.size(); j++){
+                    cout << this->symbolTable[i]->literalTable[j]->value << " " << this->symbolTable[i]->literalTable[j]->location << this->symbolTable[i]->literalTable[j]->index << endl;
+                }
+            }
+        }
+    }
+    void printRelocationTable(){
+        cout << "Relocation table:" << endl;
+        for (int i = 0; i < this->symbolTable.size(); i++){
+            if (this->symbolTable[i]->isSection){
+                for (int j = 0; j < this->symbolTable[i]->relocationTable.size(); j++){
+                    cout << this->symbolTable[i]->relocationTable[j]->symbolIndex << " " << this->symbolTable[i]->relocationTable[j]->offset << " " << this->symbolTable[i]->relocationTable[j]->literalIndex << endl;
+                }
+            }
+        }
+    }
 };

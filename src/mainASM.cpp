@@ -88,7 +88,6 @@ int main(int argc, char *argv[])
         // Ubacujemo tokene {kod, string} u listu tokena
         tokenList.push_back(Token(ntoken, (string)yytext));
         ntoken = yylex();
-        cout << "Token: " << yytext << endl;
     }
 
     firstPass();
@@ -114,7 +113,7 @@ int main(int argc, char *argv[])
             outputFile << std::internal << std::setw(5) << "DEF";
         else
             outputFile << std::internal << std::setw(5) << "UNDEF";
-        if (symbolTable[i].is_global)                                               // Global
+        if (symbolTable[i].is_global)                                               // Bind
             outputFile << std::internal << std::setw(3) << "G";
         else
             outputFile << std::internal << std::setw(3) << "L";
@@ -123,15 +122,13 @@ int main(int argc, char *argv[])
         else
             outputFile << std::internal << std::setw(3) << "V";
         outputFile << std::internal << std::setw(3) << symbolTable[i].section;    // Section number
-        outputFile << std::internal << std::setw(3) << symbolTable[i].lc_value;   // LC value
+        outputFile << std::internal << std::setw(3) << (int)symbolTable[i].lc_value;   // LC value
         if (symbolTable[i].is_section)                                              // Size
             outputFile << std::internal << std::setw(5) << symbolTable[i].sectionSize;
         else
             outputFile << std::internal << std::setw(5) << "-";
         outputFile << endl;
     }
-
-    outputFile << endl;
 
     // PRINT OUT THE LITERAL TABLE
 
@@ -147,40 +144,33 @@ int main(int argc, char *argv[])
                     outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->symbolIndex;
                 else
                     outputFile << std::internal << std::setw(4) << "-";
-                outputFile << endl;
+                outputFile << std::internal << std::setw(20) << symbolTable[i].name << endl;              // Section name
             }
         }
     }
-    outputFile << endl;
 
     // PRINT OUT THE RELOCATION TABLE
     outputFile << "RelocationTable:" << endl;
     for (int i = 0; i < symbolTable.size(); i++){
         if (symbolTable[i].is_section){
             for (int j = 0; j < symbolTable[i].relocationTable.size(); j++){
-                outputFile << std::setw(5) << symbolTable[i].relocationTable[j]->symbolIndex;                     // Symbol index
+                if (symbolTable[i].relocationTable[j]->symbolIndex == -1)                                         // Symbol index
+                    outputFile << std::setw(5) << symbolTable[i].relocationTable[j]->symbolIndex;
+                else
+                    outputFile << std::setw(5) <<  "-";
                 outputFile << std::internal << std::setw(4) << symbolTable[i].relocationTable[j]->location;       // Location
-                outputFile << std::internal << std::setw(4) << symbolTable[i].relocationTable[j]->literalIndex;   // Index
+
+                if (symbolTable[i].relocationTable[j]->literalIndex == -1)                                         // Literal Index
+                    outputFile << std::setw(4) << "-";
+                else
+                    outputFile << std::internal << std::setw(4) << symbolTable[i].relocationTable[j]->literalIndex;
+                outputFile << std::internal << std::setw(20) << symbolTable[i].name << endl;                      // Section name
                 outputFile << endl;
             }
         }
     }
 
     outputFile.close();
-
-    // Go through the output file line by line and for each line call collapseWhitespaces function and print out the line after that
-    string line;
-    ifstream outputFile2;
-    outputFile2.open(argv[2]);
-    if (!outputFile2.is_open()){
-        cout << "Output file not opened" << endl;
-        return EXIT_FAILURE;
-    }
-
-    while (getline(outputFile2, line)){
-        line = collapseWhitespaces(line);
-        cout << line << endl;
-    }
 
     return EXIT_SUCCESS;
 }

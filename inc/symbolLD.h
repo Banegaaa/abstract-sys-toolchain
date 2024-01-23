@@ -13,8 +13,12 @@ class SymbolLD {
     public:
     int id;
     string name;
-    string bind; // local or global
-    string type; // section or variable
+    int value;
+    bool isDefined;
+    bool isGlobal; // local or global
+    bool isSection; // section or variable
+
+    int location;
 
     int section;
 
@@ -25,5 +29,26 @@ class SymbolLD {
 
     vector<RelocSymbolLD*> relocationTable;
     vector<LiteralLD*> literalTable;  // bazen literala - on pocinje na onom locCounteru na kom se sekcija zavrsava
+
+    // Constructor for non-section symbol:
+    SymbolLD(int id, string name, int value, bool is_defined, bool is_global, bool is_section, int section, int LC){
+        this->id = id;
+        this->name = name;
+        this->value = value;
+        this->isDefined = is_defined;
+        this->isGlobal = is_global;
+        this->isSection = is_section;
+        this->section = section;
+        this->location = LC;
+    };
+
+    // Constructor for section symbol:
+    SymbolLD(int id, string name, bool is_section){
+        this->id = id;
+        this->name = name;
+        this->isSection = is_section;
+
+        // These symbols will possibly have their relocation and literal tables
+    };
 
 };

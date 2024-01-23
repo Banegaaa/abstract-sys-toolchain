@@ -7,11 +7,12 @@ LINKER_FILES = ./src/mainLD.cpp ./src/linker.cpp ./src/parserLD.cpp
 
 all: output
 
-asembler: lex.yy.c
-	$(CC) lex.yy.c -o asembler $(ASM_FILES)
+asembler:
+	g++ lex.yy.c -o asembler ./src/mainASM.cpp ./src/firstPass.cpp ./src/literal.cpp ./src/secondPass.cpp ./src/symbol.cpp ./src/relocSymbol.cpp
 
-linker: lex.yy.c
-	$(CC) lex.yy.c -o linker $(LINKER_FILES)
+linker:
+	g++ lex.yy.c -o linker ./src/mainLD.cpp ./src/linker.cpp ./src/parserLD.cpp
+
 lex.yy.c: rules.l
 	$(LEX) rules.l
 
