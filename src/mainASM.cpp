@@ -172,11 +172,19 @@ int main(int argc, char *argv[])
     // Write out each sections machine code to the output file
     outputFile << "MachineCode:" << endl;
     for (int i = 0; i < symbolTable.size(); i++){
+
         if (symbolTable[i].is_section){
+
             outputFile << "Section " << symbolTable[i].name << endl;
             for (int j = 0; j < symbolTable[i].machineCode.size(); j++){
                 outputFile << std::setw(2) << std::setfill('0') << std::hex << (int)symbolTable[i].machineCode[j] << " ";
             }
+            
+            // now continue this with literals
+            for (int j = 0; j < symbolTable[i].literals.size(); j++){
+                outputFile << std::setw(2) << std::setfill('0') << std::hex << (int)symbolTable[i].literals[j]->value << " ";
+            }
+
             outputFile << endl;
         }
     }
