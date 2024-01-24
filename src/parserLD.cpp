@@ -171,6 +171,7 @@ void ParserLD::parseMachineCode(vector<string> tokens, SymbolLD* sectionSymbol){
     for (int i = 0; i < tokens.size(); i++){
         sectionSymbol->machineCode.push_back(tokens[i]);
     }
+    sectionSymbol->sectionSizeWithLiterals = sectionSymbol->machineCode.size();  // if we need size with literals, we will set it here
 }
 
 

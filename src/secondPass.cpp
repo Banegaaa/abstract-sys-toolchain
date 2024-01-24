@@ -385,8 +385,6 @@ void loadInstruction(int &LC, int &i){
         value = tempSymbolSecondPass->value;
         int symbolIndex = tempSymbolSecondPass->number;
 
-        // TODO: create a relocation entry
-
         // Add symbol value to the pool of literals
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();

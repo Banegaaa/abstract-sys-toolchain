@@ -26,11 +26,14 @@ class SymbolLD {
     string sectionName;
     int sectionSize;
     int baseAddress;  // will be filled when placing sections
+    int sectionSizeWithLiterals;  // TODO: Should literals be included in section's machine code and size?
 
     vector<RelocSymbolLD*> relocationTable;
     vector<LiteralLD*> literalTable;  // bazen literala - on pocinje na onom locCounteru na kom se sekcija zavrsava
 
     vector<string> machineCode;
+
+    vector<pair<int, string> > machineCodeWithAddresses;  // (address, machine_code)
 
     // Constructor for non-section symbol:
     SymbolLD(int id, string name, int value, bool is_defined, bool is_global, bool is_section, int section, int LC){

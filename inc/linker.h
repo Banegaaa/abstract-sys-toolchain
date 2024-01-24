@@ -36,4 +36,6 @@ class Linker {
     int getSymbolIdByNameInLinker(string name);
     void createGlobalSymbolTable();  // Creating global symbol table (checking for undefined or multiply defined symbols)
 
+    void setMachineCodeAddresses();  // Setting machine code addresses for each section
+
 };
