@@ -333,20 +333,16 @@ void Linker::setMachineCodeAddresses(){
                 exit(EXIT_FAILURE);
             }
         }
-        
     }
+    // for (int i = 0; i < this->parsers.size(); i++){
+    //     for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
+    //         if (this->parsers[i]->symbolTable[j]->isSection){
 
-    for (int i = 0; i < this->parsers.size(); i++){
-        for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
-            if (this->parsers[i]->symbolTable[j]->isSection){
+    //                 for (std::vector<std::pair<int, std::string> >::const_iterator it = this->parsers[i]->symbolTable[j]->machineCodeWithAddresses.begin(); it != this->parsers[i]->symbolTable[j]->machineCodeWithAddresses.end(); ++it) {
+    //                     std::cout << "0x" << std::hex << std::setw(4) << std::setfill('0') << it->first << " - " << it->second << std::endl;
+    //                 }
 
-                    for (std::vector<std::pair<int, std::string> >::const_iterator it = this->parsers[i]->symbolTable[j]->machineCodeWithAddresses.begin(); it != this->parsers[i]->symbolTable[j]->machineCodeWithAddresses.end(); ++it) {
-                        std::cout << "0x" << std::hex << std::setw(4) << std::setfill('0') << it->first << " - " << it->second << std::endl;
-                    }
-
-            }
-        }
-    }
-
-
+    //         }
+    //     }
+    // }
 }
