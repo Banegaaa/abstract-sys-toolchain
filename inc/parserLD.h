@@ -27,6 +27,7 @@ class ParserLD {
     void parseSymbolTable(vector<string> tokens);
     void parseLiteralTable(vector<string> tokens);
     void parseRelocationTable(vector<string> tokens);
+    void parseMachineCode(vector<string> tokens, SymbolLD* sectionSymbol);
 
     SymbolLD* getSectionSymbolByName(string name);
 

@@ -2,6 +2,9 @@
 #include <sstream>
 #include "../inc/parserLD.h"
 
+
+SymbolLD* tmpSectionSymbol;
+
 int hexToIntNo0x(std::string s)
 {
     return std::stoi(s, 0, 16);
@@ -162,6 +165,15 @@ void ParserLD::parseRelocationTable(vector<string> tokens){
 }
 
 
+void ParserLD::parseMachineCode(vector<string> tokens, SymbolLD* sectionSymbol){
+
+    // every token here is an element of machine code, and we should add it to the sectionSymbol
+    for (int i = 0; i < tokens.size(); i++){
+        sectionSymbol->machineCode.push_back(tokens[i]);
+    }
+}
+
+
 void ParserLD::initialize(){
     std::ifstream inputFileStream(this->inputFileName);  // TODO: Check if we need this
 
@@ -171,7 +183,7 @@ void ParserLD::initialize(){
     }
 
     string line;
-    enum TableType { NONE, SYMBOL, LITERAL, RELOCATION };
+    enum TableType { NONE, SYMBOL, LITERAL, RELOCATION, MACHINE_CODE };
     TableType currentTable = NONE;
 
     while (std::getline(this->inputFile, line)){
@@ -198,6 +210,11 @@ void ParserLD::initialize(){
                 currentTable = RELOCATION;
                 continue;
             }
+            else if (tokens[0] == "MachineCode:"){
+                // cout << "MachineCode: PARSING" << endl;
+                currentTable = MACHINE_CODE;
+                continue;
+            }
         }
 
         switch(currentTable){
@@ -209,6 +226,13 @@ void ParserLD::initialize(){
                 break;
             case RELOCATION:
                 this->parseRelocationTable(tokens);
+                break;
+            case MACHINE_CODE:
+                if (tokens.size() == 2){  // defining section
+                    tmpSectionSymbol = this->getSectionSymbolByName(tokens[1]);
+                    continue;  // we don't want to parse this line
+                }
+                this->parseMachineCode(tokens, tmpSectionSymbol);
                 break;
             default:
                 break;
@@ -223,4 +247,15 @@ void ParserLD::initialize(){
     // this->printLiteralTable();
     // this->printRelocationTable();
 
+    // print out machine code for each section
+
+    for (int i = 0; i < this->symbolTable.size(); i++){
+        if (this->symbolTable[i]->isSection){
+            cout << "Section " << this->symbolTable[i]->name << endl;
+            for (int j = 0; j < this->symbolTable[i]->machineCode.size(); j++){
+                cout << std::setw(2) << std::setfill('0') << this->symbolTable[i]->machineCode[j] << " ";
+            }
+            cout << endl;
+        }
+    }
 }

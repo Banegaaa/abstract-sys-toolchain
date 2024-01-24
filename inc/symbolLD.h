@@ -30,6 +30,8 @@ class SymbolLD {
     vector<RelocSymbolLD*> relocationTable;
     vector<LiteralLD*> literalTable;  // bazen literala - on pocinje na onom locCounteru na kom se sekcija zavrsava
 
+    vector<string> machineCode;
+
     // Constructor for non-section symbol:
     SymbolLD(int id, string name, int value, bool is_defined, bool is_global, bool is_section, int section, int LC){
         this->id = id;
