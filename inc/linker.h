@@ -24,10 +24,16 @@ class Linker {
 
     vector<pair<string, pair<SymbolLD*,int> > > sections; // (file_name, (section_symbol, base_address))
 
+    vector<SymbolLD*> globalSymbolTable;
+
     Linker(bool hexFlag, unordered_map<string, int> placeSections, std::vector<string> inputFileNames, string outputFileName);
     ~Linker();
 
-    void sectionPlacing();
+    void sectionPlacing();  // This function will fill the sections vector
 
-    void fixAddresses();
+    void fixAddresses();  // Fixing symbol values, literal and relocation offsets
+
+    int getSymbolIdByNameInLinker(string name);
+    void createGlobalSymbolTable();  // Creating global symbol table (checking for undefined or multiply defined symbols)
+
 };

@@ -111,7 +111,7 @@ void Linker::sectionPlacing(){
                             SymbolLD* lastSectionSymbol = this->sections.back().second.first; // second = <section_symbol, address> -> first = section_symbol
                             int lastAddress = this->sections.back().second.second; // second = <section_symbol, address> -> second = address
 
-                            cout << "Velicina poslednje dodate sekcije je: " << lastSectionSymbol->sectionSize << endl;
+                            // cout << "Velicina poslednje dodate sekcije je: " << lastSectionSymbol->sectionSize << endl;
 
                             this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, lastAddress + lastSectionSymbol->sectionSize)));
                         }
@@ -134,7 +134,7 @@ void Linker::sectionPlacing(){
         int address = it->second.second;
 
         // Print in the specified format
-        std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << std::endl;
+        // std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << std::endl;
     }
 
 }
@@ -154,7 +154,8 @@ void Linker::fixAddresses(){
                 // We need to find the section in which this symbol is defined
                 // We will do this by looking for the section symbol in the sections vector
 
-                string sectionName = this->parsers[i]->getSectionSymbolById(this->parsers[i]->symbolTable[j]->id)->name;
+                int sectionNumber = this->parsers[i]->symbolTable[j]->section;
+                string sectionName = this->parsers[i]->getSectionSymbolById(sectionNumber)->name;
                 
 
                 for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
@@ -167,7 +168,19 @@ void Linker::fixAddresses(){
                 }
             }
             else {
-                // It is a section, here we will fix the relocation table
+                // Section symbol
+
+                // We set the value of the section symbol to the starting address of that section from the sections vector
+                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                    if (it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
+                        // We have found the section
+                        this->parsers[i]->symbolTable[j]->value = it->second.second;
+                        // cout << "WE STORED THE VALUE OF THE SECTION SYMBOL: " << this->parsers[i]->symbolTable[j]->value << endl;
+                        break;
+                    }
+                }
+
+                // Fix the section's the relocation table
                 for (int k = 0; k < this->parsers[i]->symbolTable[j]->relocationTable.size(); k++){
                     // We need to find the symbol in the symbol table
                     // We will do this by looking for the symbol in the symbol table
@@ -180,7 +193,78 @@ void Linker::fixAddresses(){
                         }
                     }
                 }
+
+                // Fix the section's literal table
+                for (int k = 0; k < this->parsers[i]->symbolTable[j]->literalTable.size(); k++){
+                    // We need to find the symbol in the symbol table
+                    // We will do this by looking for the symbol in the symbol table
+
+                    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                        if (it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
+                            // We have found the section
+                            this->parsers[i]->symbolTable[j]->literalTable[k]->location += it->second.second;
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
+}
+
+
+int Linker::getSymbolIdByNameInLinker(string name){
+    for (int i = 0; i < this->globalSymbolTable.size(); i++){
+        if (this->globalSymbolTable[i]->name.compare(name) == 0){
+            return this->globalSymbolTable[i]->id;
+        }
+    }
+    return -1;
+}
+
+
+void Linker::createGlobalSymbolTable(){
+
+    for (int i = 0; i < this->parsers.size(); i++){
+
+        for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
+
+            if (this->parsers[i]->symbolTable[j]->isSection){
+                // We don't need to add section symbols to the global symbol table
+                continue;
+            }
+
+            int symbolId = this->getSymbolIdByNameInLinker(this->parsers[i]->symbolTable[j]->name);
+            int symbolSectionNumber = this->parsers[i]->symbolTable[j]->section;
+
+            if (symbolSectionNumber != -1){
+                string sectionName = this->parsers[i]->getSectionSymbolById(symbolSectionNumber)->name;
+                this->parsers[i]->symbolTable[j]->sectionName = sectionName;
+            }
+
+            if (symbolId == -1 && symbolSectionNumber != -1){  // symbol is not in the global table and is defined -> add it
+                this->globalSymbolTable.push_back(this->parsers[i]->symbolTable[j]);
+            }
+            else if (symbolId != -1){
+                // Symbol with this name is already in the global table, we need to check if they are from the same section
+                string globalSymbolSectionName = this->globalSymbolTable[symbolId]->sectionName;
+                string currentSymbolSectionName = this->parsers[i]->symbolTable[j]->sectionName;
+
+                if (globalSymbolSectionName.compare(currentSymbolSectionName) == 0){
+                    cout << "Multiply defined symbol: " << this->parsers[i]->symbolTable[j]->name << endl;
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    // They are defined in different sections -> OK
+                    this->globalSymbolTable.push_back(this->parsers[i]->symbolTable[j]);
+                }
+            }
+        }
+    }
+    // print out the global symbol table
+
+    // cout << "Global symbol table:" << endl;
+    // for (int i = 0; i < this->globalSymbolTable.size(); i++){
+    //     cout << this->globalSymbolTable[i]->name << " " << this->globalSymbolTable[i]->value << endl;
+    // }
 }

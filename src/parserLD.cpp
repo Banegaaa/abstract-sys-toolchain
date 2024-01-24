@@ -40,6 +40,9 @@ string ParserLD::collapseWhitespaces(const string& input) {
 }
 
 
+
+
+
 vector<string> ParserLD::tokenize(string line){
     std::vector<std::string> tokens;
     std::istringstream iss(collapseWhitespaces(line));
@@ -181,17 +184,17 @@ void ParserLD::initialize(){
 
         if (tokens.size() == 1){
             if (tokens[0] == "SymbolTable:"){
-                cout << "SymbolTable: PARSING" << endl;
+                // cout << "SymbolTable: PARSING" << endl;
                 currentTable = SYMBOL;
                 continue;                
             }
             else if (tokens[0] == "LiteralTable:"){
-                cout << "LiteralTable: PARSING" << endl;
+                // cout << "LiteralTable: PARSING" << endl;
                 currentTable = LITERAL;
                 continue;
             }
             else if (tokens[0] == "RelocationTable:"){
-                cout << "RelocationTable: PARSING" << endl;
+                // cout << "RelocationTable: PARSING" << endl;
                 currentTable = RELOCATION;
                 continue;
             }
@@ -216,8 +219,8 @@ void ParserLD::initialize(){
 
     this->inputFile.close();
 
-    this->printSymbolTable();
-    this->printLiteralTable();
-    this->printRelocationTable();
+    // this->printSymbolTable();
+    // this->printLiteralTable();
+    // this->printRelocationTable();
 
 }

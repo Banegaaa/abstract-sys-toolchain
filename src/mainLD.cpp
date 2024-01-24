@@ -106,8 +106,11 @@ int main(int argc, char *argv[])
 
     // Create Linker object
 
-    Linker linker(hexFlag, placeSections, inputFileNames, outputFileName);
+    Linker* linker = new Linker(hexFlag, placeSections, inputFileNames, outputFileName);
 
-    linker.sectionPlacing();
+    linker->sectionPlacing();
+
+    linker->fixAddresses();
     
+    linker->createGlobalSymbolTable();
 }
