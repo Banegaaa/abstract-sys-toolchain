@@ -1,7 +1,16 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include "../inc/linker.h"
+
+
+string intToHexToString(int value){
+    std::stringstream stream;
+    stream << std::hex << value;
+    std::string result( stream.str() );
+    return result;
+}
 
 
 Linker::Linker(bool hexFlag, unordered_map<string, int> placeSections, vector<string> inputFileNames, string outputFileName){
@@ -363,29 +372,30 @@ void Linker::setMachineCodeAddresses(){
 
 void Linker::processRelocations(){
 
-    for (int i = 0; i < this->parsers.size(); i++){
+    SymbolLD* sectionSymbol;
+    int symbolIndex;
+    string sectionName;
 
-        for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
+    int symbolTrueValue;
+    int literalIndexInMachineCode;
 
-            if (this->parsers[i]->symbolTable[j]->isSection){
+    for (int i = 0; i < this->sections.size(); i++){
 
-                // Go through section's relocation table, find that literal's machine code element and replace it with the symbols true value
-                for (int k = 0; k < this->parsers[i]->symbolTable[j]->relocationTable.size(); k++){
+        sectionSymbol = this->sections[i].second.first;
 
-                    // First, we need to get the symbol's true value from the global symbol table
-                    int symbolId = this->parsers[i]->symbolTable[j]->relocationTable[k]->symbolIndex;
-                    string symbolSectionName = this->globalSymbolTable[symbolId]->sectionName;
+        // Go through the relocation table of this section
+        for (int j = 0; j < sectionSymbol->relocationTable.size(); j++){
 
-                    int symbolTrueValue = this->getGlobalSymbolByIdAndSectionName(symbolId, symbolSectionName)->value;
+            symbolIndex = sectionSymbol->relocationTable[j]->symbolIndex;
+            sectionName = sectionSymbol->relocationTable[j]->sectionName;
 
-                    // Now we get the literal's index
-                    int literalIndex = this->parsers[i]->symbolTable[j]->relocationTable[k]->literalIndex;
+            symbolTrueValue = this->getGlobalSymbolByIdAndSectionName(symbolIndex, sectionName)->value;
 
-                    // Now we get the literal's machine code element (inside that section's machineCodeWithAddresses vector)
-                    this->parsers[i]->symbolTable[j]->machineCodeWithAddresses[this->parsers[i]->symbolTable[j]->sectionSize + literalIndex].second = symbolTrueValue;
-                }
-            }
+            literalIndexInMachineCode = sectionSymbol->sectionSize - sectionSymbol->literalTable.size() + sectionSymbol->relocationTable[j]->literalIndex;
+
+            sectionSymbol->machineCode[literalIndexInMachineCode] = intToHexToString(symbolTrueValue);
+
+            // TODO: Check if we need to update machineCodeWithAddresses vector here when you figure out emulator
         }
-    }    
-
+    }
 }
