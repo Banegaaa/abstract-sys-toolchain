@@ -109,24 +109,34 @@ int main(int argc, char *argv[])
         outputFile << std::setw(5) << symbolTable[i].number;       // ID
         outputFile << std::internal << std::setw(20) << symbolTable[i].name;       // Name
         outputFile << std::internal << std::setw(15) << symbolTable[i].value;      // Value
+        
         if (symbolTable[i].is_defined)                                             // Defined
-            outputFile << std::internal << std::setw(5) << "DEF";
+            outputFile << std::internal << std::setw(6) << "DEF";
         else
-            outputFile << std::internal << std::setw(5) << "UNDEF";
+            outputFile << std::internal << std::setw(6) << "UNDEF";
+        
         if (symbolTable[i].is_global)                                               // Bind
             outputFile << std::internal << std::setw(3) << "G";
         else
             outputFile << std::internal << std::setw(3) << "L";
+        
         if (symbolTable[i].is_section)                                              // Section/Variable
             outputFile << std::internal << std::setw(3) << "S";
         else
             outputFile << std::internal << std::setw(3) << "V";
-        outputFile << std::internal << std::setw(3) << symbolTable[i].section;    // Section number
+        
+        if (symbolTable[i].section == -1)                                           // Section number
+            outputFile << std::internal << std::setw(3) << "-";
+        else
+            outputFile << std::internal << std::setw(3) << symbolTable[i].section;
+        
         outputFile << std::internal << std::setw(3) << (int)symbolTable[i].lc_value;   // LC value
+        
         if (symbolTable[i].is_section)                                              // Size
             outputFile << std::internal << std::setw(5) << symbolTable[i].sectionSize;
         else
             outputFile << std::internal << std::setw(5) << "-";
+        
         outputFile << endl;
     }
 

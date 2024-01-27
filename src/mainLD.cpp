@@ -114,9 +114,9 @@ int main(int argc, char *argv[])
 
     linker->fixAddresses();
     
-    linker->createGlobalSymbolTable();
+    // linker->createGlobalSymbolTable();
 
-    linker->setMachineCodeAddresses();
+    // linker->setMachineCodeAddresses();
 
     // linker->processRelocations();
 

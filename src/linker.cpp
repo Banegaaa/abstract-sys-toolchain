@@ -77,6 +77,16 @@ SymbolLD* Linker::getGlobalSymbolByIdAndSectionName(int id, string sectionName){
 }
 
 
+int Linker::getSymbolIdByNameInLinker(string name){
+    for (int i = 0; i < this->globalSymbolTable.size(); i++){
+        if (this->globalSymbolTable[i]->name.compare(name) == 0){
+            return this->globalSymbolTable[i]->id;
+        }
+    }
+    return -1;
+}
+
+
 void Linker::sectionPlacing(){
 
     // Go through placeSections map
@@ -190,6 +200,7 @@ void Linker::sectionPlacing(){
 
 
 void Linker::fixOverlaps(){
+    // TODO: CHECK IF WE ARE ALLOWED TO MOVE THE SECTIONS THAT ARE PLACED BY THE -place FLAG?
 
     if (this->sections.size() <= 1){
         // There is only 1 section, we don't need to fix anything
@@ -225,20 +236,19 @@ void Linker::fixOverlaps(){
 
     // print the entire sections vector
 
-    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
-        std::string fileName = it->first;
-        SymbolLD* symbolPointer = it->second.first;
-        int address = it->second.second;
+    // for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+    //     std::string fileName = it->first;
+    //     SymbolLD* symbolPointer = it->second.first;
+    //     int address = it->second.second;
 
-        // Print in the specified format
-        std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << 
-        " - " << hex << address + symbolPointer->sectionSizeWithLiterals << std::endl;
-    }
+    //     // Print in the specified format
+    //     std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << 
+    //     " - " << hex << address + symbolPointer->sectionSizeWithLiterals << std::endl;
+    // }
 }
 
 
 void Linker::fixAddresses(){
-    // TODO: CHECK IF WE ARE ALLOWED TO MOVE THE SECTIONS THAT ARE PLACED BY THE -place FLAG?
 
     // Go through all tables (symbol, reloc, and literal) and fix their addresses (now that we have placed all the sections)
     
@@ -254,11 +264,17 @@ void Linker::fixAddresses(){
                 // We will do this by looking for the section symbol in the sections vector
 
                 int sectionNumber = this->parsers[i]->symbolTable[j]->section;
+
+                if (sectionNumber == -1){
+                    // This symbol is not defined in this file, we won't fix it's value
+                    // TODO: Ok? Do we need to do anything else?
+                    continue;
+                }
                 string sectionName = this->parsers[i]->getSectionSymbolById(sectionNumber)->name;
                 
 
                 for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
-                    if (it->second.first->name.compare(sectionName) == 0){
+                    if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(sectionName) == 0){
                         // We have found the section in which this symbol is defined
                         // We need to add the address of this section to the value of this symbol
                         this->parsers[i]->symbolTable[j]->value += it->second.second;
@@ -271,7 +287,7 @@ void Linker::fixAddresses(){
 
                 // We set the value of the section symbol to the starting address of that section from the sections vector
                 for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
-                    if (it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
+                    if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
                         // We have found the section
                         this->parsers[i]->symbolTable[j]->value = it->second.second;
                         // cout << "WE STORED THE VALUE OF THE SECTION SYMBOL: " << this->parsers[i]->symbolTable[j]->value << endl;
@@ -285,7 +301,7 @@ void Linker::fixAddresses(){
                     // We will do this by looking for the symbol in the symbol table
 
                     for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
-                        if (it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
+                        if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
                             // We have found the section
                             this->parsers[i]->symbolTable[j]->relocationTable[k]->offset += it->second.second;
                             break;
@@ -299,7 +315,7 @@ void Linker::fixAddresses(){
                     // We will do this by looking for the symbol in the symbol table
 
                     for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
-                        if (it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
+                        if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
                             // We have found the section
                             this->parsers[i]->symbolTable[j]->literalTable[k]->location += it->second.second;
                             break;
@@ -308,17 +324,14 @@ void Linker::fixAddresses(){
                 }
             }
         }
-    }
-}
 
-
-int Linker::getSymbolIdByNameInLinker(string name){
-    for (int i = 0; i < this->globalSymbolTable.size(); i++){
-        if (this->globalSymbolTable[i]->name.compare(name) == 0){
-            return this->globalSymbolTable[i]->id;
+        // Write out the symbol table for each parser
+        cout << "Symbol table for: " << this->parsers[i]->inputFileName << endl;
+        for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
+            cout << " Symbol name: " << this->parsers[i]->symbolTable[j]->name << " Symbol value: " << hex << this->parsers[i]->symbolTable[j]->value << " Section name: " << this->parsers[i]->symbolTable[j]->sectionName << endl;
         }
+
     }
-    return -1;
 }
 
 

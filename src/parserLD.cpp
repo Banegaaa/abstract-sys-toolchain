@@ -79,11 +79,20 @@ void ParserLD::parseSymbolTable(vector<string> tokens){
     int id = stoi(tokens[0]);
     string name = tokens[1];
     int value = stoi(tokens[2]);
-    bool isDefined = (tokens[3] == "DEF") ? true : false;
-    bool isGlobal = (tokens[4] == "G") ? true : false;
-    bool isSection = (tokens[5] == "S") ? true : false;
-    int sectionNumber = stoi(tokens[6]);
+    bool isDefined = (tokens[3].compare("DEF") == 0) ? true : false;
+    bool isGlobal = (tokens[4].compare("G") == 0) ? true : false;
+    bool isSection = (tokens[5].compare("S") == 0) ? true : false;
+    
+    int sectionNumber;
+    if (tokens[6].compare("-") == 0){
+        sectionNumber = -1;
+    }
+    else {
+        sectionNumber = stoi(tokens[6]);
+    }
+
     int LC = stoi(tokens[7]);
+    
     if (isSection){
         int sectionSize = stoi(tokens[8]);
         // we will add the section symbol here

@@ -11,6 +11,7 @@ Symbol::Symbol(std::string name, int section, int lc_value, bool is_global, bool
     this->number = number;
     this->is_defined = is_defined;
     this->sectionSize = sectionSize;
+    this->value = 0;
 }
 
 Symbol::Symbol(std::string name, bool is_section, int sectionSize){

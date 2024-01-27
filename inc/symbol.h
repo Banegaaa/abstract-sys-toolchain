@@ -36,8 +36,6 @@ class Symbol {
 
     std::string to_string();
 
-    void allocateMachineCodeMemory(int bytes);
-
     void set1ByteOfMachineCode(int location, int value);
 
     void set4BytesOfMachineCode(int location, int value);
