@@ -12,6 +12,11 @@ string intToHexToString(int value){
     return result;
 }
 
+bool compareByAddress(const std::pair<std::string, std::pair<SymbolLD*, int> >& a,
+                      const std::pair<std::string, std::pair<SymbolLD*, int> >& b) {
+    return a.second.second < b.second.second;
+}
+
 
 Linker::Linker(bool hexFlag, unordered_map<string, int> placeSections, vector<string> inputFileNames, string outputFileName){
     this->hexFlag = hexFlag;
@@ -38,25 +43,49 @@ Linker::~Linker(){
 }
 
 
+int Linker::findTheNextAvailablePossition(){
+    int highestAddress = 0;
+    int sectionWithHighestAddressIndex = 0;
+
+    // Go through sections vector and find the highest address
+
+    for (int i = 0; i < this->sections.size(); i++){
+        if (this->sections[i].second.second > highestAddress){
+            highestAddress = this->sections[i].second.second;
+            sectionWithHighestAddressIndex = i;
+        }
+    }
+
+    return highestAddress + this->sections[sectionWithHighestAddressIndex].second.first->sectionSize;
+}
+
+
 SymbolLD* Linker::getGlobalSymbolByIdAndSectionName(int id, string sectionName){
+    // TODO: This is not enough, we could have a symbol with the same id and section_name in different files
+
+    cout << "ID: " << id << endl;
+    cout << "Section name: " << sectionName << endl;
+
     for (int i = 0; i < this->globalSymbolTable.size(); i++){
         if (this->globalSymbolTable[i]->id == id && this->globalSymbolTable[i]->sectionName.compare(sectionName) == 0){
             return this->globalSymbolTable[i];
         }
     }
+
+    cout << "Symbol with id: " << id << " and section name: " << sectionName << " not found in global symbol table" << endl;
     return nullptr;
 }
 
 
 void Linker::sectionPlacing(){
 
-    // Go through placeSections map and for each section
+    // Go through placeSections map
     // for every section, loop through all parsers so we can check if that section exists in that parser
 
     for (unordered_map<string,int>::iterator it = this->placeSections.begin(); it != this->placeSections.end(); it++){
         
-        string sectionName = it->first;  // first = key
-        int address = it->second;        // second = value
+        string sectionName = it->first;  // first = key = section_name
+        int address = it->second;        // second = value = address
 
         for (int i = 0; i < this->parsers.size(); i++){
             SymbolLD* sectionSymbol = this->parsers[i]->getSectionSymbolByName(sectionName);
@@ -115,7 +144,7 @@ void Linker::sectionPlacing(){
                         if (it->second.first->name.compare(sectionSymbol->name) == 0){
                             existsFromAnotherParser = true;
 
-                            // IF IT EXISTS, WE WILL ADD IT EMEDIATELY
+                            // IF IT EXISTS, WE WILL ADD IT EMEDIATELY AFTER THE LAST ADDED SECTION 
                             this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, it->second.second + it->second.first->sectionSize)));
                             break;
                         }
@@ -123,23 +152,24 @@ void Linker::sectionPlacing(){
 
                     if (!existsFromAnotherParser){
                         // If it doesn't exist from another parser, we add it after the last added section
+
+                        // If the sections vector is empty, we just add it
                         if (this->sections.empty()){
                             this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, 0)));
                         }
                         else {
-                            SymbolLD* lastSectionSymbol = this->sections.back().second.first; // second = <section_symbol, address> -> first = section_symbol
-                            int lastAddress = this->sections.back().second.second; // second = <section_symbol, address> -> second = address
+                            // If the sections vector is not empty, we find the address of the last added section and add it after it
 
                             // cout << "Velicina poslednje dodate sekcije je: " << lastSectionSymbol->sectionSize << endl;
 
-                            this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, lastAddress + lastSectionSymbol->sectionSize)));
+                            this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, this->findTheNextAvailablePossition())));
                         }
                     }
                     // THERE IS NO ELSE, BECAUSE IF IT EXISTS FROM ANOTHER PARSER, WE ALREADY ADDED IT
                 }
                 else {
-                    // The section from this file is alredy in the sections vector -> we don't need to do anything
 
+                    // The section from this file is alredy in the sections vector -> we don't need to do anything
                     continue;
                 }
 
@@ -147,19 +177,69 @@ void Linker::sectionPlacing(){
         }
     }
 
+    // for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+    //     std::string fileName = it->first;
+    //     SymbolLD* symbolPointer = it->second.first;
+    //     int address = it->second.second;
+
+    //     // Print in the specified format
+    //     // std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << std::endl;
+    // }
+
+}
+
+
+void Linker::fixOverlaps(){
+
+    if (this->sections.size() <= 1){
+        // There is only 1 section, we don't need to fix anything
+        return;
+    }
+
+    // Sort the sections by address in ascending order
+    std::sort(this->sections.begin(), this->sections.end(), compareByAddress);
+
+    // Iterate through sections, starting from the second section
+    for (size_t i = 1; i < sections.size(); ++i) {
+        const std::pair<std::string, std::pair<SymbolLD*, int> >& currentSection = sections[i];
+        const std::pair<std::string, std::pair<SymbolLD*, int> >& precedingSection = sections[i - 1];
+
+        // Check for overlap with the preceding section
+        if (currentSection.second.second < precedingSection.second.second + precedingSection.second.first->sectionSizeWithLiterals) {  // TODO: Check if it should be sectionSize or sectionSizeWithLiterals
+            // Adjust the address to avoid overlap
+            int newAddress = precedingSection.second.second + precedingSection.second.first->sectionSizeWithLiterals;
+            sections[i].second.second = newAddress;
+
+            // Check for further overlaps with higher-addressed sections
+            for (size_t j = i + 1; j < sections.size(); ++j) {
+                if (sections[j].second.second < newAddress) {
+                    // Move higher-addressed sections to avoid overlaps
+                    sections[j].second.second = newAddress;
+                    newAddress += sections[j].second.first->sectionSizeWithLiterals;
+                } else {
+                    break;  // Stop checking once no more overlaps are found
+                }
+            }
+        }
+    }
+
+    // print the entire sections vector
+
     for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
         std::string fileName = it->first;
         SymbolLD* symbolPointer = it->second.first;
         int address = it->second.second;
 
         // Print in the specified format
-        // std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << std::endl;
+        std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << 
+        " - " << hex << address + symbolPointer->sectionSizeWithLiterals << std::endl;
     }
-
 }
 
 
 void Linker::fixAddresses(){
+    // TODO: CHECK IF WE ARE ALLOWED TO MOVE THE SECTIONS THAT ARE PLACED BY THE -place FLAG?
+
     // Go through all tables (symbol, reloc, and literal) and fix their addresses (now that we have placed all the sections)
     
     for (int i = 0; i < this->parsers.size(); i++){
@@ -282,10 +362,10 @@ void Linker::createGlobalSymbolTable(){
     }
     // print out the global symbol table
 
-    // cout << "Global symbol table:" << endl;
-    // for (int i = 0; i < this->globalSymbolTable.size(); i++){
-    //     cout << this->globalSymbolTable[i]->name << " " << this->globalSymbolTable[i]->value << endl;
-    // }
+    cout << "Global symbol table:" << endl;
+    for (int i = 0; i < this->globalSymbolTable.size(); i++){
+        cout << "Symbol id: " << this->globalSymbolTable[i]->id << " Symbol name: " << this->globalSymbolTable[i]->name << " Symbol value: " << this->globalSymbolTable[i]->value << " Section name: " << this->globalSymbolTable[i]->sectionName << endl;
+    }
 }
 
 
@@ -312,8 +392,6 @@ void Linker::setMachineCodeAddresses(){
             // the maximum size of a string is 8 (4 bytes)
             // split the ones that are > 1
             string machineCodeElement = sectionSymbol->machineCode[j];
-
-            cout << "Handling machine code element: " << machineCodeElement << endl;
 
             if (machineCodeElement.size() == 2){
                 // This is a single byte
@@ -386,12 +464,25 @@ void Linker::processRelocations(){
         // Go through the relocation table of this section
         for (int j = 0; j < sectionSymbol->relocationTable.size(); j++){
 
+            if (i > 1) cout << "Relocation table size: " << sectionSymbol->relocationTable.size() << endl;
+
             symbolIndex = sectionSymbol->relocationTable[j]->symbolIndex;
+
+            if (i > 1) cout << "Symbol index: " << symbolIndex << endl;
+
             sectionName = sectionSymbol->relocationTable[j]->sectionName;
+
+            if (i > 1) cout << "Section name: " << sectionName << endl;
 
             symbolTrueValue = this->getGlobalSymbolByIdAndSectionName(symbolIndex, sectionName)->value;
 
-            literalIndexInMachineCode = sectionSymbol->sectionSize - sectionSymbol->literalTable.size() + sectionSymbol->relocationTable[j]->literalIndex;
+            literalIndexInMachineCode = sectionSymbol->machineCode.size() - sectionSymbol->literalTable.size() + sectionSymbol->relocationTable[j]->literalIndex;
+
+            // cout << "Machine code size: " << sectionSymbol->machineCode.size() << endl;
+            // cout << "Literal table size: " << sectionSymbol->literalTable.size() << endl;
+            // cout << "Literal index in machine code: " << literalIndexInMachineCode << endl;
+            // cout << "Literal index in machine code: " << literalIndexInMachineCode << endl;
+            // cout << "Symbol true value: " << intToHexToString(symbolTrueValue) << endl;
 
             sectionSymbol->machineCode[literalIndexInMachineCode] = intToHexToString(symbolTrueValue);
 

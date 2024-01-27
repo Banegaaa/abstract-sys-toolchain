@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < symbolTable.size(); i++){
         if (symbolTable[i].is_section){
             for (int j = 0; j < symbolTable[i].relocationTable.size(); j++){
-                if (symbolTable[i].relocationTable[j]->symbolIndex == -1)                                         // Symbol index
+                if (symbolTable[i].relocationTable[j]->symbolIndex != -1)                                         // Symbol index
                     outputFile << std::setw(5) << symbolTable[i].relocationTable[j]->symbolIndex;
                 else
                     outputFile << std::setw(5) <<  "-";

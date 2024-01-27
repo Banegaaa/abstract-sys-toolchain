@@ -29,7 +29,11 @@ class Linker {
     Linker(bool hexFlag, unordered_map<string, int> placeSections, std::vector<string> inputFileNames, string outputFileName);
     ~Linker();
 
+    int findTheNextAvailablePossition();  // This function will find the next available possition to place a section
+
     void sectionPlacing();  // This function will fill the sections vector
+
+    void fixOverlaps();  // This function will fix overlaps in the sections vector (if there are any)
 
     void fixAddresses();  // Fixing symbol values, literal and relocation offsets
 

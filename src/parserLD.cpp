@@ -155,7 +155,7 @@ void ParserLD::parseRelocationTable(vector<string> tokens){
     }
     string sectionName = tokens[3];
 
-    RelocSymbolLD* relocation = new RelocSymbolLD(symbolIndex, offset, literalIndex, sectionName);
+    RelocSymbolLD* relocation = new RelocSymbolLD(offset, symbolIndex, literalIndex, sectionName);
 
     SymbolLD* section = this->getSectionSymbolByName(sectionName);
     section->relocationTable.push_back(relocation);
@@ -168,12 +168,27 @@ void ParserLD::parseMachineCode(vector<string> tokens, SymbolLD* sectionSymbol){
     for (int i = 0; i < tokens.size(); i++){
         sectionSymbol->machineCode.push_back(tokens[i]);
     }
-    sectionSymbol->sectionSizeWithLiterals = sectionSymbol->machineCode.size();  // if we need size with literals, we will set it here
+
+    // Each element of the machine code is represented as a string (hex number)
+    // they differ in size, but the largest one is 4 bytes (ex: 0x00000000)
+    // so we will set the sectionSizeWithLiterals to number of bytes in machine code
+
+    // append all machine code elements into 1 string
+
+    string machineCodeString = "";
+    for (int i = 0; i < sectionSymbol->machineCode.size(); i++){
+        machineCodeString += sectionSymbol->machineCode[i];
+    }
+
+    // now we will get the number of bytes in machine code
+
+    sectionSymbol->sectionSizeWithLiterals = machineCodeString.size() / 2;
+
+
 }
 
 
 void ParserLD::initialize(){
-    std::ifstream inputFileStream(this->inputFileName);  // TODO: Check if we need this
 
     if (!inputFile.is_open()){
         cout << "Input file not opened" << endl;
@@ -235,8 +250,6 @@ void ParserLD::initialize(){
             default:
                 break;
         }
-
-        // TODO: INITIALIZE MACHINE CODE FOR EACH SECTION
     }
 
     this->inputFile.close();

@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
             // Add to placeSections map
             placeSections.insert(std::make_pair(sectionName, stoi(address, nullptr, 16)));
-            //
+            
         }
     }
 
@@ -110,10 +110,14 @@ int main(int argc, char *argv[])
 
     linker->sectionPlacing();
 
+    linker->fixOverlaps();
+
     linker->fixAddresses();
     
     linker->createGlobalSymbolTable();
 
     linker->setMachineCodeAddresses();
+
+    // linker->processRelocations();
 
 }
