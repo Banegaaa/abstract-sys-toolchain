@@ -1,7 +1,7 @@
 SymbolTable:
-    0        prva_sekcija      228758400  DEF  L  S  0  0   27
+    0        prva_sekcija      254374784  DEF  L  S  0  0   27
     1                lolo              0  DEF  L  V  0  0    -
-    2       druga_sekcija      228758400  DEF  L  S  2 27   27
+    2       druga_sekcija      254374784  DEF  L  S  2 27   27
     3               lolo2              0  DEF  L  V  2  0    -
 LiteralTable:
  9999   f   4   0   -        prva_sekcija

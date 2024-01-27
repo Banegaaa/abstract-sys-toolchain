@@ -34,8 +34,12 @@ class Linker {
     void fixAddresses();  // Fixing symbol values, literal and relocation offsets
 
     int getSymbolIdByNameInLinker(string name);
+    SymbolLD* getGlobalSymbolByIdAndSectionName(int id, string sectionName);
+
     void createGlobalSymbolTable();  // Creating global symbol table (checking for undefined or multiply defined symbols)
 
     void setMachineCodeAddresses();  // Setting machine code addresses for each section
+
+    void processRelocations();  // Processing relocations
 
 };

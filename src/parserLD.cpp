@@ -43,9 +43,6 @@ string ParserLD::collapseWhitespaces(const string& input) {
 }
 
 
-
-
-
 vector<string> ParserLD::tokenize(string line){
     std::vector<std::string> tokens;
     std::istringstream iss(collapseWhitespaces(line));

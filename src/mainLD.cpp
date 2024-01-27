@@ -115,4 +115,5 @@ int main(int argc, char *argv[])
     linker->createGlobalSymbolTable();
 
     linker->setMachineCodeAddresses();
+
 }

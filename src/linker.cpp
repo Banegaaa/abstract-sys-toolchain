@@ -29,6 +29,16 @@ Linker::~Linker(){
 }
 
 
+SymbolLD* Linker::getGlobalSymbolByIdAndSectionName(int id, string sectionName){
+    for (int i = 0; i < this->globalSymbolTable.size(); i++){
+        if (this->globalSymbolTable[i]->id == id && this->globalSymbolTable[i]->sectionName.compare(sectionName) == 0){
+            return this->globalSymbolTable[i];
+        }
+    }
+    return nullptr;
+}
+
+
 void Linker::sectionPlacing(){
 
     // Go through placeSections map and for each section
@@ -282,7 +292,8 @@ void Linker::setMachineCodeAddresses(){
         SymbolLD* sectionSymbol = this->sections[i].second.first;
         int address = this->sections[i].second.second;
 
-        for (int j = 0; j < sectionSymbol->machineCode.size(); j++){
+        // HERE WE ONLY WANT DIRECTIVES/INSTRUCTION MACHINE CODE, WE DO NOT WANT LITERAL POOL MACHINE CODE
+        for (int j = 0; j < sectionSymbol->machineCode.size() - sectionSymbol->literalTable.size(); j++){
 
             // TODO: What if the size of some literal is 3 half-bytes? (1.5 bytes, ex: 0x123)
 
@@ -292,6 +303,8 @@ void Linker::setMachineCodeAddresses(){
             // the maximum size of a string is 8 (4 bytes)
             // split the ones that are > 1
             string machineCodeElement = sectionSymbol->machineCode[j];
+
+            cout << "Handling machine code element: " << machineCodeElement << endl;
 
             if (machineCodeElement.size() == 2){
                 // This is a single byte
@@ -345,4 +358,34 @@ void Linker::setMachineCodeAddresses(){
     //         }
     //     }
     // }
+}
+
+
+void Linker::processRelocations(){
+
+    for (int i = 0; i < this->parsers.size(); i++){
+
+        for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
+
+            if (this->parsers[i]->symbolTable[j]->isSection){
+
+                // Go through section's relocation table, find that literal's machine code element and replace it with the symbols true value
+                for (int k = 0; k < this->parsers[i]->symbolTable[j]->relocationTable.size(); k++){
+
+                    // First, we need to get the symbol's true value from the global symbol table
+                    int symbolId = this->parsers[i]->symbolTable[j]->relocationTable[k]->symbolIndex;
+                    string symbolSectionName = this->globalSymbolTable[symbolId]->sectionName;
+
+                    int symbolTrueValue = this->getGlobalSymbolByIdAndSectionName(symbolId, symbolSectionName)->value;
+
+                    // Now we get the literal's index
+                    int literalIndex = this->parsers[i]->symbolTable[j]->relocationTable[k]->literalIndex;
+
+                    // Now we get the literal's machine code element (inside that section's machineCodeWithAddresses vector)
+                    this->parsers[i]->symbolTable[j]->machineCodeWithAddresses[this->parsers[i]->symbolTable[j]->sectionSize + literalIndex].second = symbolTrueValue;
+                }
+            }
+        }
+    }    
+
 }
