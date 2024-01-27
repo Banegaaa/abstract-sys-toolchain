@@ -32,27 +32,27 @@ class ParserLD {
     SymbolLD* getSectionSymbolByName(string name);
 
     void printSymbolTable(){
-        cout << "Symbol table:" << endl;
+        std::cout << "Symbol table:" << endl;
         for (int i = 0; i < this->symbolTable.size(); i++){
-            cout << this->symbolTable[i]->name << " " << this->symbolTable[i]->section << " " << this->symbolTable[i]->value << endl;
+            std::cout << this->symbolTable[i]->name << " " << this->symbolTable[i]->section << " " << this->symbolTable[i]->value << endl;
         }
     }
     void printLiteralTable(){
-        cout << "Literal table:" << endl;
+        std::cout << "Literal table:" << endl;
         for (int i = 0; i < this->symbolTable.size(); i++){
             if (this->symbolTable[i]->isSection){
                 for (int j = 0; j < this->symbolTable[i]->literalTable.size(); j++){
-                    cout << this->symbolTable[i]->literalTable[j]->value << " " << this->symbolTable[i]->literalTable[j]->location << this->symbolTable[i]->literalTable[j]->index << endl;
+                    std::cout << this->symbolTable[i]->literalTable[j]->value << " " << this->symbolTable[i]->literalTable[j]->location << this->symbolTable[i]->literalTable[j]->index << endl;
                 }
             }
         }
     }
     void printRelocationTable(){
-        cout << "Relocation table:" << endl;
+        std::cout << "Relocation table:" << endl;
         for (int i = 0; i < this->symbolTable.size(); i++){
             if (this->symbolTable[i]->isSection){
                 for (int j = 0; j < this->symbolTable[i]->relocationTable.size(); j++){
-                    cout << this->symbolTable[i]->relocationTable[j]->symbolIndex << " " << this->symbolTable[i]->relocationTable[j]->offset << " " << this->symbolTable[i]->relocationTable[j]->literalIndex << endl;
+                    std::cout << this->symbolTable[i]->relocationTable[j]->symbolIndex << " " << this->symbolTable[i]->relocationTable[j]->offset << " " << this->symbolTable[i]->relocationTable[j]->literalIndex << endl;
                 }
             }
         }
@@ -62,7 +62,7 @@ class ParserLD {
         for (int i = 0; i < this->symbolTable.size(); i++){
             if (this->symbolTable[i]->id == id){
                 if (!this->symbolTable[i]->isSection){
-                    cout << "Symbol with id " << id << " is not a section" << endl;
+                    std::cout << "Symbol with id " << id << " is not a section" << endl;
                     exit(EXIT_FAILURE);
                 }
                 return this->symbolTable[i];

@@ -402,17 +402,18 @@ void Linker::createGlobalSymbolTable(){
 
             if (this->parsers[i]->symbolTable[j]->isSection){
                 // We don't need to add section symbols to the global symbol table
-
                 continue;
             }
 
             // Here we set sectionName for symbols that are defined in some section inside parser[i]
             int symbolSectionNumber = this->parsers[i]->symbolTable[j]->section;
 
-            if (symbolSectionNumber != 1){
+
+            if (symbolSectionNumber != -1){
                 string sectionName = this->parsers[i]->getSectionSymbolById(symbolSectionNumber)->name;
                 this->parsers[i]->symbolTable[j]->sectionName = sectionName;
             }
+
 
             // Here we check if the symbol is already in the global symbol table
             SymbolLD* symbol = this->getGlobalSymbolByName(this->parsers[i]->symbolTable[j]->name);
@@ -439,6 +440,35 @@ void Linker::createGlobalSymbolTable(){
                 this->globalSymbolTable.push_back(this->parsers[i]->symbolTable[j]);
             }
 
+        }
+    }
+
+    // Go through all the parsers once again, and find if there are any unresolved symbols left
+
+    for (int i = 0; i < this->parsers.size(); i++){
+
+        for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
+
+            if (this->parsers[i]->symbolTable[j]->isSection) continue;
+
+            if (this->parsers[i]->symbolTable[j]->section == -1){
+                
+                // We have an unresolved symbol
+                // We need to find it in the global symbol table
+
+                SymbolLD* symbol = this->getGlobalSymbolByName(this->parsers[i]->symbolTable[j]->name);
+
+
+                if (symbol == nullptr){
+                    std::cout << "Unresolved symbol: " << this->parsers[i]->symbolTable[j]->name << endl;
+                    exit(EXIT_FAILURE);
+                }
+                else {
+                    // We have found the symbol in the global symbol table
+                    // We need to set the value of the symbol in the parser's symbol table to the value of the symbol in the global symbol table
+                    this->parsers[i]->symbolTable[j]->value = symbol->value;
+                }
+            }
         }
     }
 
