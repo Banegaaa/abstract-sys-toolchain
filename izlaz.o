@@ -1,8 +1,8 @@
 SymbolTable:
-    0        prva_sekcija-             1  DEF  L  S  0  0   27
-    1                main              0  DEF  L  V  0  0    -
-    2       druga_sekcija-             1  DEF  L  S  2 27   27
-    3               main2              0  DEF  L  V  2  0    -
+    0        prva_sekcija              0   DEF  L  S  0  0   27
+    1                main              0   DEF  L  V  0  0    -
+    2       druga_sekcija              0   DEF  L  S  2 27   27
+    3               main2              0   DEF  L  V  2  0    -
 LiteralTable:
  9999   f   4   0   -        prva_sekcija
     0  17   4   1   1        prva_sekcija

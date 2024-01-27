@@ -39,8 +39,11 @@ class Linker {
 
     int getSymbolIdByNameInLinker(string name);
     SymbolLD* getGlobalSymbolByIdAndSectionName(int id, string sectionName);
+    SymbolLD* getGlobalSymbolByName(string name);
 
     void createGlobalSymbolTable();  // Creating global symbol table (checking for undefined or multiply defined symbols)
+
+    void createGlobalSymbolTableTwo();
 
     void setMachineCodeAddresses();  // Setting machine code addresses for each section
 
