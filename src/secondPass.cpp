@@ -136,12 +136,11 @@ void callAndJmpCase(int &LC, int &i){
         }
 
         tempSymbolSecondPass = symbolExists(tokenList[i].name);
-        value = tempSymbolSecondPass->value;
         int symbolIndex = tempSymbolSecondPass->number;
 
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
-        Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
+        Literal* newLiteral = new Literal(0, LC, 4, index, symbolIndex);  // we don't know the value of the symbol yet, so we'll set it to 0, size is 4 bytes
         std::cout << "LC LITERALA JE: " << LC << std::endl;
         tempSymbolSecondPass->addLiteral(newLiteral);
 
@@ -238,12 +237,11 @@ void jumpInstructionsCase(int &LC, int &i){
         machineCodeWord |= (reg2 << 12);
 
         tempSymbolSecondPass = symbolExists(tokenList[i].name);
-        value = tempSymbolSecondPass->value;
         int symbolIndex = tempSymbolSecondPass->number;        
 
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
-        Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
+        Literal* newLiteral = new Literal(0, LC, 4, index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
@@ -294,12 +292,10 @@ void loadInstruction(int &LC, int &i){
             // symbol
             tempSymbolSecondPass = symbolExists(tokenList[i].name);
 
-            // we add it's value to the pool of literals
-            value = tempSymbolSecondPass->value;
             int symbolIndex = tempSymbolSecondPass->number;
 
             tempSymbolSecondPass = getSectionSymbol(currentSection);
-            tempSymbolSecondPass->literals.push_back(new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), symbolIndex));
+            tempSymbolSecondPass->literals.push_back(new Literal(0, LC, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
             std::cout << "LC LITERALA JE: " << LC << std::endl;
 
             // Create relocation entry
@@ -382,13 +378,12 @@ void loadInstruction(int &LC, int &i){
         machineCodeWord |= (registerNumber << 16);
 
         tempSymbolSecondPass = symbolExists(tokenList[i].name);
-        value = tempSymbolSecondPass->value;
         int symbolIndex = tempSymbolSecondPass->number;
 
         // Add symbol value to the pool of literals
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
-        Literal* newLiteral = new Literal(value, LC, sizeof(value), index, symbolIndex);
+        Literal* newLiteral = new Literal(0, LC, 4, index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
@@ -565,12 +560,11 @@ void storeInstruction(int &LC, int &i){
     else if (tokenList[i].value == NAME){
         // get the symbol value
         tempSymbolSecondPass = symbolExists(tokenList[i].name);
-        value = tempSymbolSecondPass->value;
         int symbolIndex = tempSymbolSecondPass->number;
 
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
-        tempSymbolSecondPass->literals.push_back(new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), symbolIndex));
+        tempSymbolSecondPass->literals.push_back(new Literal(0, LC, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
         std::cout << "LC LITERALA JE: " << LC << std::endl;
 
         // Create a relocation entry
