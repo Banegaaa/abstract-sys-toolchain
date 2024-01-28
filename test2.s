@@ -7,12 +7,12 @@ lolo:
     ld 0x9999, %r2
     call lolo
 .section druga_sekcija
-main8:
+lolo2:
     .skip 3
     add %r1, %r2
     sub %r1, %r2
     ld [%r1 + 4], %r2
     ld 0x9999, %r2
-    call lolololo
+    call lolo2
 .end
 

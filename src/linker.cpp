@@ -408,7 +408,6 @@ void Linker::createGlobalSymbolTable(){
             // Here we set sectionName for symbols that are defined in some section inside parser[i]
             int symbolSectionNumber = this->parsers[i]->symbolTable[j]->section;
 
-
             if (symbolSectionNumber != -1){
                 string sectionName = this->parsers[i]->getSectionSymbolById(symbolSectionNumber)->name;
                 this->parsers[i]->symbolTable[j]->sectionName = sectionName;
@@ -418,22 +417,19 @@ void Linker::createGlobalSymbolTable(){
             // Here we check if the symbol is already in the global symbol table
             SymbolLD* symbol = this->getGlobalSymbolByName(this->parsers[i]->symbolTable[j]->name);
 
-            // If the symbol doesn't already exist in the global symbol table and is not an extern symbol (section number = -1) we add it
-            
+            // If the symbol doesn't already exist in the global symbol table and is not an extern symbol (section number != -1) we add it
+            // TODO: Only add defined symbols? -> Is that solved with section number != -1?
             if (symbol == nullptr && symbolSectionNumber != -1){
                 this->globalSymbolTable.push_back(this->parsers[i]->symbolTable[j]);
             }
             else if (symbol && symbolSectionNumber != -1 && !symbol->isGlobal && symbol->sectionName.compare(this->parsers[i]->symbolTable[j]->sectionName) == 0){
+                // If the symbol with the same name is already in the global symbol table AND
+                // if the symbol is not global (meaning it is defined inside the current file) AND
+                // it is defined inside the same section as the current symbol
+                // We have a multiply defined symbol
                 std::cout << "Multiply defined symbol: " << this->parsers[i]->symbolTable[j]->name << endl;
                 exit(EXIT_FAILURE);
             }
-            // else {
-            //     std::cout << "DA LI JE GRESKA?" << endl;
-            //     std::cout << "Simbol postoji i ime mu je: " << symbol->name << endl;
-            //     std::cout << "Simbol je globalan: " << symbol->isGlobal << endl;
-            //     std::cout << "Simbol iz globalne je definisan u sekciji: " << symbol->sectionName << endl;
-            //     std::cout << "Simbol iz lokalne je definisan u sekciji: " << this->parsers[i]->symbolTable[j]->sectionName << endl;
-            // }
             else if (symbol && symbol->sectionName.compare(this->parsers[i]->symbolTable[j]->sectionName) != 0){
                 // We have a symbol with the same name in the global symbol table, but it is defined in a different section
                 // We need to add this symbol to the global symbol table
@@ -488,6 +484,8 @@ void Linker::setMachineCodeAddresses(){
     // It would be ideal to place them in the section's machineCodeWithAddresses vector byte by byte
     // So we will split the 4-bytes into single bytes and place them in the vector
 
+    string concatenatedMachineCode = "";
+
     for (int i = 0; i < this->sections.size(); i++){
 
         SymbolLD* sectionSymbol = this->sections[i].second.first;
@@ -503,60 +501,34 @@ void Linker::setMachineCodeAddresses(){
             // the minimum size of a string is 2 (1 byte)
             // the maximum size of a string is 8 (4 bytes)
             // split the ones that are > 1
-            string machineCodeElement = sectionSymbol->machineCode[j];
+            concatenatedMachineCode += sectionSymbol->machineCode[j];
 
-            if (machineCodeElement.size() == 2){
-                // This is a single byte
-                sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address, machineCodeElement));
-                address += 1;
-            }
-            else if (machineCodeElement.size() == 4){
-                // This is 2 bytes
-                // We will split it into 2 single bytes and place them in the vector with their addresses
+            if (concatenatedMachineCode.size() / 2 != 0){
+                
+                // we will take byte by byte (2 chars) from the concatenatedMachineCode string and place it in the machineCodeWithAddresses vector
 
-                string byte1 = machineCodeElement.substr(0,2);
-                string byte2 = machineCodeElement.substr(2,2);
-
-                sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address, byte1));
-                sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address+1, byte2));
-
-                address += 2;
-            }
-            else if (machineCodeElement.size() == 8){
-                // This is 4 bytes
-                // We will split it into 4 single bytes and place them in the vector with their addresses
-
-                string byte1 = machineCodeElement.substr(0,2);
-                string byte2 = machineCodeElement.substr(2,2);
-                string byte3 = machineCodeElement.substr(4,2);
-                string byte4 = machineCodeElement.substr(6,2);
-
-                sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address, byte1));
-                sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address+1, byte2));
-                sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address+2, byte3));
-                sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address+3, byte4));
-
-                address += 4;
+                for (int k = 0; k < concatenatedMachineCode.size(); k += 2){
+                    string byte = concatenatedMachineCode.substr(k, 2);
+                    sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address, byte));
+                    address++;
+                }
             }
             else {
-                std::cout << "Machine code element is not 1 or 2 or 4 bytes" << endl;
-                std::cout << "Machine code element: " << machineCodeElement << endl;
-                std::cout << "It's size is: " << machineCodeElement.size() << endl;
+                std::cout << "Size of concatenated machine code is not even. It is: " << concatenatedMachineCode.size() << endl;
                 exit(EXIT_FAILURE);
             }
         }
     }
-    // for (int i = 0; i < this->parsers.size(); i++){
-    //     for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
-    //         if (this->parsers[i]->symbolTable[j]->isSection){
 
-    //                 for (std::vector<std::pair<int, std::string> >::const_iterator it = this->parsers[i]->symbolTable[j]->machineCodeWithAddresses.begin(); it != this->parsers[i]->symbolTable[j]->machineCodeWithAddresses.end(); ++it) {
-    //                     std::std::cout << "0x" << std::hex << std::setw(4) << std::setfill('0') << it->first << " - " << it->second << std::endl;
-    //                 }
+    // print out the machineCodeWithAddresses vector for each section
 
-    //         }
-    //     }
-    // }
+    for (int i = 0; i < this->sections.size(); i++){
+        SymbolLD* sectionSymbol = this->sections[i].second.first;
+        std::cout << "Section name: " << sectionSymbol->name << endl;
+        for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++){
+            std::cout << " Address: " << hex << sectionSymbol->machineCodeWithAddresses[j].first << " Machine code: " << sectionSymbol->machineCodeWithAddresses[j].second << endl;
+        }
+    }
 }
 
 
