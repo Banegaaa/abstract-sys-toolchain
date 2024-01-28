@@ -43,10 +43,10 @@ class Linker {
 
     void createGlobalSymbolTable();  // Creating global symbol table (checking for undefined or multiply defined symbols)
 
-    void createGlobalSymbolTableTwo();
-
     void setMachineCodeAddresses();  // Setting machine code addresses for each section
 
     void processRelocations();  // Processing relocations
+
+    void writeOutputFile();  // Writing output file
 
 };

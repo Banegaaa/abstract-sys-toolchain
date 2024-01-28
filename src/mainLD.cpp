@@ -120,4 +120,6 @@ int main(int argc, char *argv[])
 
     // linker->processRelocations();
 
+    linker->writeOutputFile();
+
 }

@@ -574,3 +574,42 @@ void Linker::processRelocations(){
         }
     }
 }
+
+
+void Linker::writeOutputFile(){
+
+    // The output of the linker should be address: 8_bytes_of_machine_code_split_by_space, example:
+    /*
+        0000: 00 01 02 03 04 05 06 07
+        0008: 08 09 0A 0B 0C 0D 0E 0F
+        0010: 10 11 12 13 14 15 16 17
+        etc...
+    */
+   // We will use machineCodeWithAddress here
+
+   // Open output file
+
+   if (!this->outputFile.is_open()){
+       std::cout << "Output file could not be opened" << endl;
+       exit(EXIT_FAILURE);
+   }
+
+   for (int i = 0; i < this->sections.size(); i++){
+       SymbolLD* sectionSymbol = this->sections[i].second.first;
+
+       for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++){
+        
+            this->outputFile << std::setw(4) << std::setfill('0') << hex << sectionSymbol->machineCodeWithAddresses[j].first << ": ";
+
+            for (int k = 0; k < 8; k++){
+                this->outputFile << sectionSymbol->machineCodeWithAddresses[j].second << " ";
+                if (k != 7) j++;
+            }
+
+            this->outputFile << endl;
+       }
+   }
+
+    this->outputFile.close();
+    
+}
