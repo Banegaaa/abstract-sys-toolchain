@@ -145,9 +145,303 @@ void Emulator::execute(){
 
             std::cout << "INT" << endl;
 
-            // inside gpr[15] is 
+            // push pc
 
+            this->gpr[15] += 4;
+
+            string byte = std::to_string(this->gpr[15] & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 1, byte);  // gpr[14] - 1 because sp is pointing to the last taken address
+
+            byte = std::to_string((this->gpr[15] >> 8) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 2, byte);
+
+            byte = std::to_string((this->gpr[15] >> 16) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 3, byte);
+
+            byte = std::to_string((this->gpr[15] >> 24) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 4, byte);
+
+            this->gpr[14] = this->gpr[15];
+
+
+            // push status
+
+            byte = std::to_string(this->csr[0] & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 1, byte);
+
+            byte = std::to_string((this->csr[0] >> 8) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 2, byte);
+
+            byte = std::to_string((this->csr[0] >> 16) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 3, byte);
+
+            byte = std::to_string((this->csr[0] >> 24) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 4, byte);
+
+            this->gpr[14] -= 4;
+
+            // cause <= 4;
+            this->csr[2] = 4;
+
+            // status <= status & (~0x1);
+            this->csr[0] &= ~0x1;
+
+            // pc <= handle;
+            this->gpr[15] = this->csr[1];
+        }
+        else if (instructionCode.compare(XCHG) == 0) {
+
+            // xchg %gprS, %gprD
+            /*
+                tmp <= gpr[S];
+                gpr[S] <= gpr[D];
+                gpr[D] <= tmp;
+            */
+
+            std::cout << "XCHG" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the second half-byte in the following byte
+            // gprS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            unsigned tmp = this->gpr[D];
+            this->gpr[D] = this->gpr[S];
+            this->gpr[S] = tmp;
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(ADD) == 0){
+
+            // add %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] + gpr[S];
+            */
+
+            std::cout << "ADD" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gprS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] += this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(SUB) == 0){
+
+            // sub %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] - gpr[S];
+            */
+
+            std::cout << "SUB" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gprS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] -= this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(MUL) == 0){
+
+            // mul %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] * gpr[S];
+            */
+
+            std::cout << "MUL" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gprS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] *= this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(DIV) == 0){
+
+            // div %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] / gpr[S];
+            */
+
+            std::cout << "DIV" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gprS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] /= this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(NOT) == 0){
+
+            // not %gprD
+            /*
+                gpr[D] <= ~gpr[D];
+            */
+
+            std::cout << "NOT" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gprD == gprS
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            this->gpr[D] = ~this->gpr[D];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(AND) == 0){
+
+            // and %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] & gpr[S];
+            */
+
+            std::cout << "AND" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gprS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] &= this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(OR) == 0){
+
+            // or %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] | gpr[S];
+            */
+
+            std::cout << "OR" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gprS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] |= this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(XOR) == 0){
+
+            // xor %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] ^ gpr[S];
+            */
+
+            std::cout << "XOR" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gpS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] ^= this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(SHL) == 0){
+
+            // shl %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] << gpr[S];
+            */
+
+            std::cout << "SHL" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gpS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] <<= this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(SHR) == 0){
+
+            // shr %gprS, %gprD
+            /*
+                gpr[D] <= gpr[D] >> gpr[S];
+            */
+
+            std::cout << "SHR" << endl;
+
+            // We have the instruction code, now we need to get the operands
+            // gprD is the first or second half-byte in the following byte
+            // gpS is the first half-byte in the following byte after that
+
+            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            int D = stoi(byte);
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
+            int S = stoi(byte);
+
+            this->gpr[D] >>= this->gpr[S];
+
+            this->gpr[15] += 4;
         }
     }
-
 }
