@@ -122,4 +122,5 @@ int main(int argc, char *argv[])
 
     linker->writeOutputFile();
 
+    return EXIT_SUCCESS;
 }
