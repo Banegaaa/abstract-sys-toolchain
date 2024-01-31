@@ -119,6 +119,8 @@ void Emulator::writeByteToMemory(unsigned address, string byte) {
 void Emulator::execute(){
 
     bool halt = false;
+    string byte;
+    string machineCodeWord;
 
     while (!halt) {
 
@@ -149,7 +151,7 @@ void Emulator::execute(){
 
             this->gpr[15] += 4;
 
-            string byte = std::to_string(this->gpr[15] & 0xFF);
+            byte = std::to_string(this->gpr[15] & 0xFF);
             this->writeByteToMemory(this->gpr[14] - 1, byte);  // gpr[14] - 1 because sp is pointing to the last taken address
 
             byte = std::to_string((this->gpr[15] >> 8) & 0xFF);
@@ -204,7 +206,7 @@ void Emulator::execute(){
             // gprD is the second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -229,7 +231,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -252,7 +254,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -275,7 +277,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -298,7 +300,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -321,7 +323,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprD == gprS
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             this->gpr[D] = ~this->gpr[D];
@@ -341,7 +343,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -364,7 +366,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -387,7 +389,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gpS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -410,7 +412,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gpS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -433,7 +435,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gpS is the first half-byte in the following byte after that
 
-            string byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
+            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
             int D = stoi(byte);
 
             byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
@@ -442,6 +444,382 @@ void Emulator::execute(){
             this->gpr[D] >>= this->gpr[S];
 
             this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(CALL_L) == 0){
+            // call literal
+
+            /*
+                push pc;
+                pc <= gpr[A] + gpr[B] + D;    === pc <= D; A = 0; B = 0;
+            */
+
+            std::cout << "CALL_L" << endl;
+
+            // extract D
+
+            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0x0F);
+            byte = byte + this->getByteFromMemory(this->gpr[15] + 3);
+
+            int D = stoi(byte, nullptr, 16);
+
+            // push pc
+
+            this->gpr[15] += 4;
+
+            byte = std::to_string(this->gpr[15] & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 1, byte);  // gpr[14] - 1 because sp is pointing to the last taken address
+
+            byte = std::to_string((this->gpr[15] >> 8) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 2, byte);
+
+            byte = std::to_string((this->gpr[15] >> 16) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 3, byte);
+
+            byte = std::to_string((this->gpr[15] >> 24) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 4, byte);
+
+            this->gpr[14] -= 4;
+
+            // pc <= gpr[A] + gpr[B] + D;
+
+            this->gpr[15] = D;
+        }
+        else if (instructionCode.compare(CALL_S) == 0){
+
+            // call symbol
+
+            /*
+                This is a case where we call symbol or literal that couldn't be placed in the D bits, so we need to extract it from memory.
+
+                push pc;
+                pc <= mem32[gpr[A] + gpr[B] + D];    === pc <= D; A = F; B = 0;
+            */
+
+
+            std::cout << "CALL_S" << endl;
+
+            int A = 0xF;  // TODO: Or should we extract it?
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte 
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            // push pc
+
+            this->gpr[15] += 4;
+
+            byte = std::to_string(this->gpr[15] & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 1, byte);  // gpr[14] - 1 because sp is pointing to the last taken address
+
+            byte = std::to_string((this->gpr[15] >> 8) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 2, byte);
+
+            byte = std::to_string((this->gpr[15] >> 16) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 3, byte);
+
+            byte = std::to_string((this->gpr[15] >> 24) & 0xFF);
+            this->writeByteToMemory(this->gpr[14] - 4, byte);
+
+            this->gpr[14] -= 4;
+
+            // pc <= mem32[gpr[A] + gpr[B] + D]
+
+            // TODO: CHECK IF THIS WILL GET THE CORRECT LITERAL FROM MEMORY
+
+            int address = this->gpr[A] + Disp;
+
+            // TODO: Why is it in this order???
+            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+
+            this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+        }
+        else if (instructionCode.compare(JMP_L) == 0){
+
+            // jmp literal
+
+            /*
+                pc <= gpr[A] + gpr[B] + D;    === pc <= D; A = F; B = 0;
+                ==
+                pc <= pc + D;
+            */
+
+            std::cout << "JMP_L" << endl;
+
+            int A = 0xF;  // TODO: Or should we extract it?
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            // pc <= pc + D;
+
+            this->gpr[15] += Disp;
+        }
+        else if (instructionCode.compare(JMP_S) == 0){
+
+            // jmp symbol
+
+            /*
+                This is a case where we jmp symbol or literal that couldn't be placed in the D bits, so we need to extract it from memory.
+
+                pc <= mem32[gpr[A] + gpr[B] + D];    === pc <= D; A = F; B = 0;
+            */
+
+            std::cout << "JMP_S" << endl;
+
+            int A = 0xF;  // TODO: Or should we extract it?
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            // pc <= mem32[gpr[A] + gpr[B] + D]
+
+            int address = this->gpr[A] + Disp;
+
+            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+
+            this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+        }
+        else if (instructionCode.compare(BEQ_L) == 0){
+            
+            // beq %gprB, %gprC, literal
+
+            /*
+                if (gpr[B] == gpr[C]) {
+                    pc <= gpr[A] + gpr[B] + D;  => A = F = 15 = PC
+                }
+                else {
+                    pc <= pc + 4;
+                }
+            */
+
+            std::cout << "BEQ_L" << endl;
+
+            int A = 0xF;  // pc
+
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);  // TODO: Check
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            if (this->gpr[B] == this->gpr[C]){
+                // pc <= gpr[A] + D;    === pc <= D; A = F;
+
+                this->gpr[15] += Disp;
+            }
+            else {
+                // pc <= pc + 4;
+                this->gpr[15] += 4;
+            }
+        }
+        else if (instructionCode.compare(BEQ_S)){
+
+            // beq %gprB, %gprC, symbol
+
+            /*
+                This is a case where we beq symbol or literal that couldn't be placed in the D bits, so we need to extract it from memory.
+
+                if (gpr[B] == gpr[C]) {
+                    pc <= mem32[gpr[A] + D];   =>  A = F = 15 = PC
+                }
+                else {
+                    pc <= pc + 4;
+                }
+            */
+
+            std::cout << "BEQ_S" << endl;
+
+            int A = 0xF;  // pc
+
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);  // TODO: Check
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            int address = this->gpr[A] + Disp;
+
+            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+
+            if (this->gpr[B] == this->gpr[C]){
+                // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
+
+                this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+            }
+            else {
+                // pc <= pc + 4;
+                this->gpr[15] += 4;
+            }
+        }
+        else if (instructionCode.compare(BNE_L) == 0){
+            
+            // bne %gprB, %gprC, literal
+
+            /*
+                if (gpr[B] != gpr[C]) {
+                    pc <= gpr[A] + D;    === A = PC
+                }
+                else {
+                    pc <= pc + 4;
+                }
+            */
+
+            std::cout << "BNE_L" << endl;
+
+            int A = 0xF;  // pc
+
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            if (this->gpr[B] != this->gpr[C]){
+                // pc <= gpr[A] + D;    === pc <= D; A = F;
+
+                this->gpr[15] += Disp;
+            }
+            else {
+                // pc <= pc + 4;
+                this->gpr[15] += 4;
+            }
+        }
+        else if (instructionCode.compare(BNE_S) == 0){
+
+            // bne %gprB, %gprC, symbol
+
+            /*
+                This is a case where we bne symbol or literal that couldn't be placed in the D bits, so we need to extract it from memory.
+
+                if (gpr[B] != gpr[C]) {
+                    pc <= mem32[gpr[A] + D];
+                }
+                else {
+                    pc <= pc + 4;
+                }
+            */
+
+            std::cout << "BNE_S" << endl;
+
+            int A = 0xF;  // pc
+
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            int address = this->gpr[A] + Disp;
+
+            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+
+            if (this->gpr[B] != this->gpr[C]){
+                // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
+
+                this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+            }
+            else {
+                // pc <= pc + 4;
+                this->gpr[15] += 4;
+            }
+        }
+        else if (instructionCode.compare(BGT_L) == 0){
+            
+            // bgt %gprB, %gprC, literal
+
+            /*
+                if (gpr[B] > gpr[C]) {
+                    pc <= gpr[A] + D;
+                }
+                else {
+                    pc <= pc + 4;
+                }
+            */
+
+            std::cout << "BGT_L" << endl;
+
+            int A = 0xF;  // pc
+
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            if (this->gpr[B] > this->gpr[C]){
+                // pc <= gpr[A] + D;    === pc <= D; A = F;
+
+                this->gpr[15] += Disp;
+            }
+            else {
+                // pc <= pc + 4;
+                this->gpr[15] += 4;
+            }
+        }
+        else if (instructionCode.compare(BGT_S) == 0){
+
+            // bgt %gprB, %gprC, symbol
+
+            /*
+                This is a case where we bgt symbol or literal that couldn't be placed in the D bits, so we need to extract it from memory.
+
+                if (gpr[B] > gpr[C]) {
+                    pc <= mem32[gpr[A] + D];
+                }
+                else {
+                    pc <= pc + 4;
+                }
+            */
+
+            std::cout << "BGT_S" << endl;
+
+            int A = 0xF;  // pc
+
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+
+            string strDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            strDisp = strDisp.substr(1);                                      // take only the lower half-byte  
+            strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(strDisp, nullptr, 16);
+
+            int address = this->gpr[A] + Disp;
+
+            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+
+            if (this->gpr[B] > this->gpr[C]){
+                // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
+
+                this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+            }
+            else {
+                // pc <= pc + 4;
+                this->gpr[15] += 4;
+            }
         }
     }
 }
