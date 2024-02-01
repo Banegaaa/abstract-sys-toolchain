@@ -1042,8 +1042,18 @@ void Emulator::execute(){
 
             int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
 
+            // sp <= sp - 4;
 
+            this->gpr[14] -= 4;
+
+            // mem32[sp] <= gpr[C];
+
+            this->writeByteToMemory(this->gpr[14], std::to_string(this->gpr[C] & 0xFF));
+            this->writeByteToMemory(this->gpr[14] + 1, std::to_string((this->gpr[C] >> 8) & 0xFF));
+            this->writeByteToMemory(this->gpr[14] + 2, std::to_string((this->gpr[C] >> 16) & 0xFF));
+            this->writeByteToMemory(this->gpr[14] + 3, std::to_string((this->gpr[C] >> 24) & 0xFF));
+
+            this->gpr[15] += 4;
         }
-
     }
 }
