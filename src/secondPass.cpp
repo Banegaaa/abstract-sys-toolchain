@@ -998,6 +998,7 @@ int secondPass(){
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
                 tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
                 LC += 4;
+                break;
                 
             
             case ENDD:
