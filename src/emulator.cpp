@@ -973,6 +973,77 @@ void Emulator::execute(){
 
             this->gpr[15] += 4;
         }
+        else if (instructionCode.compare(ST_1) == 0){
+
+            // st %gpr, operand
+            /*
+                mem32[gpr[A] + gpr[B] + D] <= gpr[C];
+            */
+
+            std::cout << "ST_1" << endl;
+
+            int A = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(0, 1), nullptr, 16);
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+
+            string stdDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            stdDisp = stdDisp.substr(1);                                      // take only the lower half-byte
+            stdDisp = stdDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(stdDisp, nullptr, 16);
+
+            int address = this->gpr[A] + this->gpr[B] + Disp;  // Address from which we set gpr[C]
+
+            this->writeByteToMemory(address, std::to_string(this->gpr[C] & 0xFF));
+            this->writeByteToMemory(address + 1, std::to_string((this->gpr[C] >> 8) & 0xFF));
+            this->writeByteToMemory(address + 2, std::to_string((this->gpr[C] >> 16) & 0xFF));
+            this->writeByteToMemory(address + 3, std::to_string((this->gpr[C] >> 24) & 0xFF));
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(ST_2) == 0){
+
+            /*
+                mem32[mem32[gpr[A] + gpr[B] + D]] <= gpr[C];
+            */
+
+            std::cout << "ST_2" << endl;
+
+            int A = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(0, 1), nullptr, 16);
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+
+            string stdDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            stdDisp = stdDisp.substr(1);                                      // take only the lower half-byte
+            stdDisp = stdDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(stdDisp, nullptr, 16);
+
+            int address = this->gpr[A] + this->gpr[B] + Disp;  // Address from which we get the address for setting gpr[C]
+
+            string strAddress2 = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+            int address2 = stoi(strAddress2, nullptr, 16);
+
+            this->writeByteToMemory(address2, std::to_string(this->gpr[C] & 0xFF));
+            this->writeByteToMemory(address2 + 1, std::to_string((this->gpr[C] >> 8) & 0xFF));
+            this->writeByteToMemory(address2 + 2, std::to_string((this->gpr[C] >> 16) & 0xFF));
+            this->writeByteToMemory(address2 + 3, std::to_string((this->gpr[C] >> 24) & 0xFF));
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(PUSH) == 0){
+
+            // push %gprC
+            /*
+                sp <= sp - 4;   mem32[sp] <= gpr[C];
+            */
+
+            std::cout << "PUSH" << endl;
+
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+
+
+        }
 
     }
 }

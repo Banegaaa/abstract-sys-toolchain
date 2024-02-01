@@ -27,3 +27,6 @@
 #define LD_2    "92"
 #define POP     "93"
 #define POP_S   "97"
+#define ST_1    "80"
+#define ST_2    "82"
+#define PUSH    "81"
