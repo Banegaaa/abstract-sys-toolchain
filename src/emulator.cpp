@@ -530,7 +530,10 @@ void Emulator::execute(){
 
             int address = this->gpr[A] + Disp;
 
-            // TODO: Why is it in this order???
+            // *** IMPORTANT ***
+            // When we need to fetch 4 bytes from memory, we need to fetch them in reverse order, because of the little endianess of the system
+            // When we were storing the bytes, we first stored the highest byte, because the stack pointer is decreasing when we push!!!
+
             machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
 
             this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
@@ -859,5 +862,117 @@ void Emulator::execute(){
 
             this->gpr[15] += 4;
         }
+        else if (instructionCode.compare(LD_1) == 0){
+
+            // instruction code 0x91
+            /*
+                This is a case for two types of operand with ld instruction:
+                    1. ld $literal, %gprD  ==>   gprD <= $literal     (where the literal fits in the D bits)
+                    2. ld %gprS, %gprD     ==>   gprD <= gprS
+            */
+
+            std::cout << "LD_1" << endl;
+
+            string DS = this->getByteFromMemory(this->gpr[15] + 1);
+
+            int D = stoi(DS.substr(0, 1), nullptr, 16);
+            int S = stoi(DS.substr(1), nullptr, 16);
+
+            string stdDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            stdDisp = stdDisp.substr(1);                                      // take only the lower half-byte
+            stdDisp = stdDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(stdDisp, nullptr, 16);
+
+            this->gpr[D] = this->gpr[S] + Disp;
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(LD_2) == 0){
+
+            // instruction code 0x92
+            /*
+                gpr[A] <= mem32[gpr[B] + gpr[C] + D];
+
+                machine code word:   1001 0010 AAAA BBBB CCCC DDDD DDDD DDDD
+            */
+
+            std::cout << "LD_2" << endl;
+
+            int A = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(0, 1), nullptr, 16);
+            int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+
+            string stdDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
+            stdDisp = stdDisp.substr(1);                                      // take only the lower half-byte
+            stdDisp = stdDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
+
+            int Disp = stoi(stdDisp, nullptr, 16);
+
+            int address = this->gpr[B] + this->gpr[C] + Disp;
+
+            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+
+            this->gpr[A] = stoi(machineCodeWord, nullptr, 16);
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(POP) == 0){
+            
+            // pop %gprD
+            /*
+                gpr[A] <= mem32[gpr[B]];   gpr[B] <= gpr[B] + 4;
+                ===
+                gpr[A] <= mem32[sp];   sp <= sp + 4;
+                ===
+                gpr[A] <= mem32[gpr[14]];   gpr[14] <= gpr[14] + 4;
+            */
+
+            std::cout << "POP" << endl;
+
+            int A = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(0, 1), nullptr, 16);
+            int B = 0xE;  // sp
+            int D = 4;
+
+            // we get the value from the address that sp is pointing to
+            machineCodeWord = this->getByteFromMemory(this->gpr[B] + 3) + this->getByteFromMemory(this->gpr[B] + 2) + this->getByteFromMemory(this->gpr[B] + 1) + this->getByteFromMemory(this->gpr[B]);
+
+            this->gpr[A] = stoi(machineCodeWord, nullptr, 16);
+
+            // sp <= sp + 4;
+
+            this->gpr[B] += D;
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(POP_S) == 0){
+
+            // pop %special_reg
+            /*
+                csr[A] <= mem32[gpr[B]];   gpr[B] <= gpr[B] + 4;
+                ===
+                csr[A] <= mem32[sp];   sp <= sp + 4;
+                ===
+                csr[A] <= mem32[gpr[14]];   gpr[14] <= gpr[14] + 4;
+            */
+
+            std::cout << "POP_S" << endl;
+
+            int A = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(0, 1), nullptr, 16);
+            int B = 0xE;  // sp
+            int D = 4;
+
+            // we get the value from the address that sp is pointing to
+            machineCodeWord = this->getByteFromMemory(this->gpr[B] + 3) + this->getByteFromMemory(this->gpr[B] + 2) + this->getByteFromMemory(this->gpr[B] + 1) + this->getByteFromMemory(this->gpr[B]);
+
+            this->csr[A] = stoi(machineCodeWord, nullptr, 16);
+
+            // sp <= sp + 4;
+
+            this->gpr[B] += D;
+
+            this->gpr[15] += 4;
+        }
+
     }
 }

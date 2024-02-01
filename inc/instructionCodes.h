@@ -23,3 +23,7 @@
 #define BGT_S   "3B"
 #define CSRRD   "90"
 #define CSRWR   "94"
+#define LD_1    "91"
+#define LD_2    "92"
+#define POP     "93"
+#define POP_S   "97"
