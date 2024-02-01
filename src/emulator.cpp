@@ -821,5 +821,43 @@ void Emulator::execute(){
                 this->gpr[15] += 4;
             }
         }
+        else if (instructionCode.compare(CSRRD) == 0){
+
+            // csrrd %csr, %gpr
+
+            /*
+                gpr[D] <= csr[S];
+            */
+
+            std::cout << "CSRRD" << endl;
+
+            string DS = this->getByteFromMemory(this->gpr[15] + 1);
+
+            int D = stoi(DS.substr(0, 1), nullptr, 16);
+            int S = stoi(DS.substr(1), nullptr, 16);
+
+            this->gpr[D] = this->csr[S];
+
+            this->gpr[15] += 4;
+        }
+        else if (instructionCode.compare(CSRWR) == 0){
+
+            // csrwr %gpr, %csr
+
+            /*
+                csr[D] <= gpr[S];
+            */
+
+            std::cout << "CSRWR" << endl;
+
+            string DS = this->getByteFromMemory(this->gpr[15] + 1);
+
+            int D = stoi(DS.substr(0, 1), nullptr, 16);
+            int S = stoi(DS.substr(1), nullptr, 16);
+
+            this->csr[D] = this->gpr[S];
+
+            this->gpr[15] += 4;
+        }
     }
 }

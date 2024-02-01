@@ -21,3 +21,5 @@
 #define BNE_S   "3A"
 #define BGT_L   "33"
 #define BGT_S   "3B"
+#define CSRRD   "90"
+#define CSRWR   "94"
