@@ -27,6 +27,9 @@ class Emulator {
     string getByteFromMemory(unsigned address);
     void writeByteToMemory(unsigned address, string byte);
 
+    int getUpperHalfWordFromMemory(unsigned address);
+    int getLowerHalfWordFromMemory(unsigned address);
+
     void execute();
 
 };

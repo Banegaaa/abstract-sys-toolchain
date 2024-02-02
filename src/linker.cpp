@@ -455,21 +455,23 @@ void Linker::setMachineCodeAddresses(){
             // split the ones that are > 1
             concatenatedMachineCode += sectionSymbol->machineCode[j];
 
-            if (concatenatedMachineCode.size() / 2 != 0){
-                
-                // we will take byte by byte (2 chars) from the concatenatedMachineCode string and place it in the machineCodeWithAddresses vector
+        }
 
-                for (int k = 0; k < concatenatedMachineCode.size(); k += 2){
-                    string byte = concatenatedMachineCode.substr(k, 2);
-                    sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address, byte));
-                    address++;
-                }
-            }
-            else {
-                std::cout << "Size of concatenated machine code is not even. It is: " << concatenatedMachineCode.size() << endl;
-                exit(EXIT_FAILURE);
+        if (concatenatedMachineCode.size() / 2 != 0){
+            
+            // we will take byte by byte (2 chars) from the concatenatedMachineCode string and place it in the machineCodeWithAddresses vector
+
+            for (int k = 0; k < concatenatedMachineCode.size(); k += 2){
+                string byte = concatenatedMachineCode.substr(k, 2);
+                sectionSymbol->machineCodeWithAddresses.push_back(make_pair(address, byte));
+                address++;
             }
         }
+        else {
+            std::cout << "Size of concatenated machine code is not even. It is: " << concatenatedMachineCode.size() << endl;
+            exit(EXIT_FAILURE);
+        }
+        
     }
 
     // print out the machineCodeWithAddresses vector for each section

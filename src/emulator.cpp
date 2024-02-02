@@ -116,7 +116,20 @@ void Emulator::writeByteToMemory(unsigned address, string byte) {
 }
 
 
+int Emulator::getUpperHalfWordFromMemory(unsigned address) {
+    string byte = this->getByteFromMemory(address);
+    return stoi(byte.substr(0, 1), nullptr, 16);
+}
+
+int Emulator::getLowerHalfWordFromMemory(unsigned address) {
+    string byte = this->getByteFromMemory(address);
+    return stoi(byte.substr(1), nullptr, 16) & 0x0F;
+}
+
+
 void Emulator::execute(){
+
+    std::cout << "Executing program... " << endl;
 
     bool halt = false;
     string byte;
@@ -132,7 +145,6 @@ void Emulator::execute(){
             std::cout << "HALT" << endl;
             halt = true;
             this->gpr[15] += 4;
-            continue;
         }
         else if (instructionCode.compare(INT) == 0){
             // INT
@@ -206,11 +218,8 @@ void Emulator::execute(){
             // gprD is the second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             unsigned tmp = this->gpr[D];
             this->gpr[D] = this->gpr[S];
@@ -231,11 +240,8 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] += this->gpr[S];
 
@@ -254,13 +260,16 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            cout << "DESTINACIONI REGISTAR JE: " << D << endl;
+            cout << "VREDNOST DESTINACIONOG REGISTRA JE: " << this->gpr[D] << endl;
+            cout << "IZVORNI REGISTAR JE: " << S << endl;
+            cout << "VREDNOST IZVORNOG REGISTRA JE: " << this->gpr[S] << endl;
+            cout << "REZULTAT JE: " << this->gpr[D] - this->gpr[S] << endl;
 
-            this->gpr[D] -= this->gpr[S];
+            this->gpr[D] = this->gpr[D] - this->gpr[S];
 
             this->gpr[15] += 4;
         }
@@ -277,11 +286,8 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] *= this->gpr[S];
 
@@ -300,11 +306,8 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] /= this->gpr[S];
 
@@ -323,8 +326,7 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprD == gprS
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
 
             this->gpr[D] = ~this->gpr[D];
 
@@ -343,11 +345,8 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] &= this->gpr[S];
 
@@ -366,11 +365,8 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gprS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] |= this->gpr[S];
 
@@ -389,11 +385,8 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gpS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getLowerHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] ^= this->gpr[S];
 
@@ -412,11 +405,8 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gpS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] <<= this->gpr[S];
 
@@ -435,11 +425,8 @@ void Emulator::execute(){
             // gprD is the first or second half-byte in the following byte
             // gpS is the first half-byte in the following byte after that
 
-            byte = this->getByteFromMemory((this->gpr[15] + 1) & 0x0F);
-            int D = stoi(byte);
-
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0xF0);
-            int S = stoi(byte);
+            int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] >>= this->gpr[S];
 
@@ -457,8 +444,8 @@ void Emulator::execute(){
 
             // extract D
 
-            byte = this->getByteFromMemory((this->gpr[15] + 2) & 0x0F);
-            byte = byte + this->getByteFromMemory(this->gpr[15] + 3);
+            byte = this->getByteFromMemory(this->gpr[15] + 2);
+            byte = byte.substr(1) + this->getByteFromMemory(this->gpr[15] + 3);
 
             int D = stoi(byte, nullptr, 16);
 
@@ -626,7 +613,7 @@ void Emulator::execute(){
                 this->gpr[15] += 4;
             }
         }
-        else if (instructionCode.compare(BEQ_S)){
+        else if (instructionCode.compare(BEQ_S) == 0){
 
             // beq %gprB, %gprC, symbol
 
@@ -1054,6 +1041,7 @@ void Emulator::execute(){
             this->writeByteToMemory(this->gpr[14] + 3, std::to_string((this->gpr[C] >> 24) & 0xFF));
 
             this->gpr[15] += 4;
+
         }
     }
 }

@@ -33,8 +33,9 @@ int main(int argc, char** argv) {
         if (i != 0 && i % 4 == 0) {
             std::cout << std::endl;
         }
-        std::cout << "r" << i << "=" << "0x" << std::setw(8) << std::setfill('0') << hex << emulator->gpr[i] << std::setw(1) << "\t";
+        std::cout << "r" << dec << i << "=" << "0x" << std::setw(8) << std::setfill('0') << hex << emulator->gpr[i] << std::setw(1) << "\t";
     }
+    std::cout << endl;
 
     return EXIT_SUCCESS;
 }

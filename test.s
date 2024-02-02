@@ -1,18 +1,10 @@
 .section prva_sekcija
 main:
-    .skip 3
-    add %r1, %r2
+    ld $5, %r1
+    ld $6, %r2
     sub %r1, %r2
-    ld [%r1 + 4], %r2
-    ld 0x9999, %r2
-    call main
-.section druga_sekcija
-main2:
-    .skip 3
-    add %r1, %r2
-    sub %r1, %r2
-    ld [%r1 + 4], %r2
-    ld 0x9999, %r2
-    call main
+    ld $2, %r3
+    mul %r2, %r3
+    halt
 .end
 
