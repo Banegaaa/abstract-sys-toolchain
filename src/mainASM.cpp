@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 
             outputFile << "Section " << symbolTable[i].name << endl;
             for (int j = 0; j < symbolTable[i].machineCode.size(); j++){
-                outputFile << std::setw(2) << std::setfill('0') << std::hex << (int)symbolTable[i].machineCode[j] << " ";
+                outputFile << std::setw(8) << std::setfill('0') << std::hex << (int)symbolTable[i].machineCode[j] << " ";
             }
             
             // now continue this with literals

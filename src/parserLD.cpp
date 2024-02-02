@@ -250,7 +250,7 @@ void ParserLD::initialize(){
                 this->parseRelocationTable(tokens);
                 break;
             case MACHINE_CODE:
-                if (tokens.size() == 2){  // defining section
+                if (tokens.size() == 2 && tokens[0].compare("Section") == 0){  // defining section
                     tmpSectionSymbol = this->getSectionSymbolByName(tokens[1]);
                     continue;  // we don't want to parse this line
                 }

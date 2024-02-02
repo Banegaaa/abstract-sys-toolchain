@@ -345,54 +345,6 @@ void Linker::fixAddresses(){
 }
 
 
-// void Linker::createGlobalSymbolTable(){
-
-//     for (int i = 0; i < this->parsers.size(); i++){
-
-//         for (int j = 0; j < this->parsers[i]->symbolTable.size(); j++){
-
-//             if (this->parsers[i]->symbolTable[j]->isSection){
-//                 // We don't need to add section symbols to the global symbol table
-//                 continue;
-//             }
-
-//             int symbolId = this->getSymbolIdByNameInLinker(this->parsers[i]->symbolTable[j]->name);
-//             int symbolSectionNumber = this->parsers[i]->symbolTable[j]->section;
-
-//             // Setting sectionName field of SymbolLD object
-//             if (symbolSectionNumber != -1){
-//                 string sectionName = this->parsers[i]->getSectionSymbolById(symbolSectionNumber)->name;
-//                 this->parsers[i]->symbolTable[j]->sectionName = sectionName;
-//             }
-
-//             if (symbolId == -1 && symbolSectionNumber != -1){  // symbol is not in the global table and is defined -> add it
-//                 this->globalSymbolTable.push_back(this->parsers[i]->symbolTable[j]);
-//             }
-//             else if (symbolId != -1){
-//                 // Symbol with this name is already in the global table, we need to check if they are from the same section
-//                 string globalSymbolSectionName = this->globalSymbolTable[symbolId]->sectionName;
-//                 string currentSymbolSectionName = this->parsers[i]->symbolTable[j]->sectionName;
-
-//                 if (globalSymbolSectionName.compare(currentSymbolSectionName) == 0){
-//                     std::cout << "Multiply defined symbol: " << this->parsers[i]->symbolTable[j]->name << endl;
-//                     exit(EXIT_FAILURE);
-//                 }
-//                 else {
-//                     // They are defined in different sections -> OK
-//                     this->globalSymbolTable.push_back(this->parsers[i]->symbolTable[j]);
-//                 }
-//             }
-//         }
-//     }
-//     // print out the global symbol table
-
-//     std::cout << "Global symbol table:" << endl;
-//     for (int i = 0; i < this->globalSymbolTable.size(); i++){
-//         std::cout << "Symbol id: " << this->globalSymbolTable[i]->id << " Symbol name: " << this->globalSymbolTable[i]->name << " Symbol value: " << this->globalSymbolTable[i]->value << " Section name: " << this->globalSymbolTable[i]->sectionName << endl;
-//     }
-// }
-
-
 void Linker::createGlobalSymbolTable(){
 
 
