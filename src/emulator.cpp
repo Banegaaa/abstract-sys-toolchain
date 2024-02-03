@@ -386,7 +386,7 @@ void Emulator::execute(){
             // gpS is the first half-byte in the following byte after that
 
             int D = this->getLowerHalfWordFromMemory(this->gpr[15] + 1);
-            int S = this->getLowerHalfWordFromMemory(this->gpr[15] + 2);
+            int S = this->getUpperHalfWordFromMemory(this->gpr[15] + 2);
 
             this->gpr[D] ^= this->gpr[S];
 
@@ -469,7 +469,7 @@ void Emulator::execute(){
 
             // pc <= gpr[A] + gpr[B] + D;
 
-            this->gpr[15] = D;
+            this->gpr[15] = this->gpr[15] + D;
         }
         else if (instructionCode.compare(CALL_S) == 0){
 

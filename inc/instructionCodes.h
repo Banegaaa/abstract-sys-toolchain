@@ -11,7 +11,7 @@
 #define XOR     "63"
 #define SHL     "70"
 #define SHR     "71"
-#define CALL_L  "80"
+#define CALL_L  "20"
 #define CALL_S  "81"
 #define JMP_L   "30"
 #define JMP_S   "38"

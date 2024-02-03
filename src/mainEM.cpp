@@ -37,5 +37,17 @@ int main(int argc, char** argv) {
     }
     std::cout << endl;
 
+    for (int i = 0; i < 3; i++){
+        if (i == 0){
+            std::cout << "status=";
+        }
+        else if (i == 1){
+            std::cout << "handler=";
+        }
+        else if (i == 2){
+            std::cout << "cause=";
+        }
+        std::cout << "0x" << std::setw(8) << std::setfill('0') << hex << emulator->csr[i] << std::setw(1) << std::endl;
+    }
     return EXIT_SUCCESS;
 }
