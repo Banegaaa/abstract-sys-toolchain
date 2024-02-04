@@ -488,43 +488,45 @@ void Linker::setMachineCodeAddresses(){
 
 void Linker::processRelocations(){
 
-    SymbolLD* sectionSymbol;
-    int symbolIndex;
-    string sectionName;
-
-    int symbolTrueValue;
-    int literalIndexInMachineCode;
+    int addressForFixing = 0;
+    string symbolName = "";
+    string symbolValueString = "";
+    std::stringstream hexStream;
 
     for (int i = 0; i < this->sections.size(); i++){
 
-        sectionSymbol = this->sections[i].second.first;
 
-        // Go through the relocation table of this section
-        for (int j = 0; j < sectionSymbol->relocationTable.size(); j++){
+        for (int j = 0; j < this->sections[i].second.first->relocationTable.size(); j++){  // sections[i].second.first == SymbolLD*
+            
+            // we overwrite the data from that section where the relocation is happening
+            // addressForFixing = this->sections[i].second.second + this->sections[i].second.first->relocationTable[j]->offset;  // TODO: Maybe we can do it like this, and then there is no need for fixing offset/addres of relocations/literals
 
-            if (i > 1) std::cout << "Relocation table size: " << sectionSymbol->relocationTable.size() << endl;
+            addressForFixing = this->sections[i].second.first->relocationTable[j]->offset;
 
-            symbolIndex = sectionSymbol->relocationTable[j]->symbolIndex;
+            // Get the symbols name, so we can get it's true value
+            symbolName = this->sections[i].second.first->relocationTable[j]->symbolName;
 
-            if (i > 1) std::cout << "Symbol index: " << symbolIndex << endl;
+            // Get the symbol from the global symbol table
+            SymbolLD* symbol = this->getGlobalSymbolByName(symbolName);
+            hexStream << std::hex << symbol->value;
+            symbolValueString = hexStream.str();
 
-            sectionName = sectionSymbol->relocationTable[j]->sectionName;
+            // Now go through machineCodeWithAddresses vector and write 4B of symbol value starting from addressForFixing
+            // TODO: Check if the value is right! (It should be, we should've fixed it in the fixAddresses function)
 
-            if (i > 1) std::cout << "Section name: " << sectionName << endl;
+            // Go through the machineCodeWithAddresses vector and fix the bytes
 
-            symbolTrueValue = this->getGlobalSymbolByIdAndSectionName(symbolIndex, sectionName)->value;
-
-            literalIndexInMachineCode = sectionSymbol->machineCode.size() - sectionSymbol->literalTable.size() + sectionSymbol->relocationTable[j]->literalIndex;
-
-            // std::cout << "Machine code size: " << sectionSymbol->machineCode.size() << endl;
-            // std::cout << "Literal table size: " << sectionSymbol->literalTable.size() << endl;
-            // std::cout << "Literal index in machine code: " << literalIndexInMachineCode << endl;
-            // std::cout << "Literal index in machine code: " << literalIndexInMachineCode << endl;
-            // std::cout << "Symbol true value: " << intToHexToString(symbolTrueValue) << endl;
-
-            sectionSymbol->machineCode[literalIndexInMachineCode] = intToHexToString(symbolTrueValue);
-
-            // TODO: Check if we need to update machineCodeWithAddresses vector here when you figure out emulator
+            for (int k = 0; k < this->sections[i].second.first->machineCodeWithAddresses.size(); k++){
+                
+                if (this->sections[i].second.first->machineCodeWithAddresses[k].first == addressForFixing){    
+                    // We found it, fix the bytes and break
+                    this->sections[i].second.first->machineCodeWithAddresses[k].second = symbolValueString.substr(0, 2);
+                    this->sections[i].second.first->machineCodeWithAddresses[k + 1].second = symbolValueString.substr(2, 2);
+                    this->sections[i].second.first->machineCodeWithAddresses[k + 2].second = symbolValueString.substr(4, 2);
+                    this->sections[i].second.first->machineCodeWithAddresses[k + 3].second = symbolValueString.substr(6, 2);
+                    break;
+                }
+            }
         }
     }
 }
