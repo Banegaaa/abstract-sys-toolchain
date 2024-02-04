@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
             
             // now continue this with literals
             for (int j = 0; j < symbolTable[i].literals.size(); j++){
-                outputFile << std::setw(2) << std::setfill('0') << std::hex << (int)symbolTable[i].literals[j]->value << " ";
+                outputFile << std::setw(8) << std::setfill('0') << std::hex << (int)symbolTable[i].literals[j]->value << " ";
             }
 
             outputFile << endl;

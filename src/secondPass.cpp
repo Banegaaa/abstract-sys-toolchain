@@ -732,7 +732,8 @@ int secondPass(){
 
                     // we need to add jmp pool_of_literals to machine code
                     tempSymbolSecondPass = getSectionSymbol(currentSection);
-                    tempSymbolSecondPass->machineCode.push_back(0x30F00000 | (LC + tempSymbolSecondPass->literals.size() * 4));  // jmp pool_of_literals
+
+                    tempSymbolSecondPass->machineCode.push_back(0x30F00000 | (tempSymbolSecondPass->literals.size() * 4 + 4));  // jmp pool_of_literals
 
                     // increment LC, because we added jmp instruction
                     LC += 4;

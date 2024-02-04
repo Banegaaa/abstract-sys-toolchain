@@ -436,9 +436,11 @@ void Linker::setMachineCodeAddresses(){
     // It would be ideal to place them in the section's machineCodeWithAddresses vector byte by byte
     // So we will split the 4-bytes into single bytes and place them in the vector
 
-    string concatenatedMachineCode = "";
+    string concatenatedMachineCode;
 
     for (int i = 0; i < this->sections.size(); i++){
+
+        concatenatedMachineCode = "";
 
         SymbolLD* sectionSymbol = this->sections[i].second.first;
         int address = this->sections[i].second.second;
@@ -479,6 +481,7 @@ void Linker::setMachineCodeAddresses(){
     for (int i = 0; i < this->sections.size(); i++){
         SymbolLD* sectionSymbol = this->sections[i].second.first;
         std::cout << "Section name: " << sectionSymbol->name << endl;
+        std::cout << "VELICINA NJENOG MASINSKOG KODA JE: " << sectionSymbol->machineCodeWithAddresses.size() << endl;
         for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++){
             std::cout << " Address: " << hex << sectionSymbol->machineCodeWithAddresses[j].first << " Machine code: " << sectionSymbol->machineCodeWithAddresses[j].second << endl;
         }
