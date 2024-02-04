@@ -498,7 +498,6 @@ void Linker::processRelocations(){
 
     for (int i = 0; i < this->sections.size(); i++){
 
-
         for (int j = 0; j < this->sections[i].second.first->relocationTable.size(); j++){  // sections[i].second.first == SymbolLD*
             
             // we overwrite the data from that section where the relocation is happening
@@ -521,7 +520,8 @@ void Linker::processRelocations(){
 
             for (int k = 0; k < this->sections[i].second.first->machineCodeWithAddresses.size(); k++){
                 
-                if (this->sections[i].second.first->machineCodeWithAddresses[k].first == addressForFixing){    
+                if (this->sections[i].second.first->machineCodeWithAddresses[k].first == addressForFixing){ 
+
                     // We found it, fix the bytes and break
                     this->sections[i].second.first->machineCodeWithAddresses[k].second = symbolValueString.substr(0, 2);
                     this->sections[i].second.first->machineCodeWithAddresses[k + 1].second = symbolValueString.substr(2, 2);
@@ -553,22 +553,87 @@ void Linker::writeOutputFile(){
        exit(EXIT_FAILURE);
    }
 
-   for (int i = 0; i < this->sections.size(); i++){
-       SymbolLD* sectionSymbol = this->sections[i].second.first;
+   // print out the machineCodeWithAddresses vector for each section
 
-       for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++){
-        
+    // Write out to the output file machineCodeWithAddresses vector for each section
+    // Write it in format address: 8_bytes_of_machine_code_split_by_space
+
+    for (int i = 0; i < this->sections.size(); i++){
+        SymbolLD* sectionSymbol = this->sections[i].second.first;
+
+        for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++){
             this->outputFile << std::setw(4) << std::setfill('0') << hex << sectionSymbol->machineCodeWithAddresses[j].first << ": ";
 
+            // now i want to write out the next 8 bytes of machine code (counting the one at j)
             for (int k = 0; k < 8; k++){
-                this->outputFile << sectionSymbol->machineCodeWithAddresses[j].second << " ";
+
+                if (j >= sectionSymbol->machineCodeWithAddresses.size()){
+                    break;
+                }
+                else {
+                    this->outputFile << sectionSymbol->machineCodeWithAddresses[j].second << " ";
+                }
                 if (k != 7) j++;
             }
 
             this->outputFile << endl;
-       }
-   }
+        }
+    }
 
     this->outputFile.close();
     
 }
+
+
+// void Linker::writeOutputFile() {
+//     if (!this->outputFile.is_open()) {
+//         std::cout << "Output file could not be opened" << std::endl;
+//         exit(EXIT_FAILURE);
+//     }
+
+//     // Keep track of the last written address
+//     int lastAddress = -1;
+
+//     for (int i = 0; i < this->sections.size(); i++) {
+//         SymbolLD* sectionSymbol = this->sections[i].second.first;
+
+//         for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++) {
+//             int currentAddress = sectionSymbol->machineCodeWithAddresses[j].first;
+
+//             // Check if the next section has the same name and the address continues the previous line
+//             if (currentAddress == lastAddress) {
+//                 for (int k = 0; k < 8; k++) {
+//                     // Check if j is within bounds
+//                     if (j < sectionSymbol->machineCodeWithAddresses.size()) {
+//                         this->outputFile << sectionSymbol->machineCodeWithAddresses[j].second << " ";
+//                         j++;  // Increment j to move to the next element
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//                 j--;  // Decrement j to avoid double increment in the outer loop
+//             } else {
+//                 // Start a new line
+//                 this->outputFile << std::setw(4) << std::setfill('0') << std::hex << currentAddress << ": ";
+
+//                 // Write the next 8 bytes of machine code
+//                 for (int k = 0; k < 8; k++) {
+//                     // Check if j is within bounds
+//                     if (j < sectionSymbol->machineCodeWithAddresses.size()) {
+//                         this->outputFile << sectionSymbol->machineCodeWithAddresses[j].second << " ";
+//                         j++;  // Increment j to move to the next element
+//                     } else {
+//                         break;
+//                     }
+//                 }
+//             }
+
+//             // Update the last written address
+//             lastAddress = currentAddress;
+
+//             this->outputFile << std::endl;
+//         }
+//     }
+
+//     this->outputFile.close();
+// }

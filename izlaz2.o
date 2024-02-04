@@ -1,0 +1,8 @@
+SymbolTable:
+    0        prva_sekcija              0   DEF  L  S  0  0    4
+    1         main_test_2              0   DEF  L  V  0  0    -
+LiteralTable:
+RelocationTable:
+MachineCode:
+Section prva_sekcija
+00000000 

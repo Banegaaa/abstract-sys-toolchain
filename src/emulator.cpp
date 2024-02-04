@@ -548,6 +548,7 @@ void Emulator::execute(){
             // pc <= pc + D;
 
             this->gpr[15] += Disp;
+
         }
         else if (instructionCode.compare(JMP_S) == 0){
 
