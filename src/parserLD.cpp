@@ -164,7 +164,9 @@ void ParserLD::parseRelocationTable(vector<string> tokens){
     }
     string sectionName = tokens[3];
 
-    RelocSymbolLD* relocation = new RelocSymbolLD(offset, symbolIndex, literalIndex, sectionName);
+    string symbolName = this->getSymbolNameById(symbolIndex);
+
+    RelocSymbolLD* relocation = new RelocSymbolLD(offset, symbolIndex, literalIndex, symbolName, sectionName);
 
     SymbolLD* section = this->getSectionSymbolByName(sectionName);
     section->relocationTable.push_back(relocation);

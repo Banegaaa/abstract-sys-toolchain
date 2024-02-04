@@ -70,4 +70,13 @@ class ParserLD {
         }
         return NULL;
     }
+
+    string getSymbolNameById(int id){
+        for (int i = 0; i < this->symbolTable.size(); i++){
+            if (this->symbolTable[i]->id == id){
+                return this->symbolTable[i]->name;
+            }
+        }
+        return "";
+    }
 };

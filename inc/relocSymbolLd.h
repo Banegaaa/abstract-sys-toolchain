@@ -7,12 +7,14 @@ class RelocSymbolLD {
     int offset;
     int symbolIndex;
     int literalIndex;
+    string symbolName;
     string sectionName;
 
-    RelocSymbolLD(int offset, int symbolIndex, int literalIndex, string sectionName){
+    RelocSymbolLD(int offset, int symbolIndex, int literalIndex, string symbolName, string sectionName){
         this->offset = offset;
         this->symbolIndex = symbolIndex;
         this->literalIndex = literalIndex;
+        this->symbolName = symbolName;
         this->sectionName = sectionName;
     }
 };
