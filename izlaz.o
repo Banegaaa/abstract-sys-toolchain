@@ -1,9 +1,0 @@
-SymbolTable:
-    0        prva_sekcija              0   DEF  L  S  0  0   16
-    1                main              0   DEF  L  V  0  0    -
-    2               main2             12   DEF  L  V  0 12    -
-LiteralTable:
-RelocationTable:
-MachineCode:
-Section prva_sekcija
-91100003 91200008 71221000 00000000 
