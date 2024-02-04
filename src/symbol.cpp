@@ -75,5 +75,35 @@ void Symbol::setZeroValueBytes(int location, int numOfBytes){
     }
 }
 
+
+int Symbol::updateLiteralTable(int LC){
+    // Update the literal table
+    for (int i = 0; i < literals.size(); i++){
+        literals[i]->location = LC;
+        LC += literals[i]->size;  // === LC += 4;
+    }
+    // We will return the new value of LC, because we will need it in the secondPass, when we store where the section will continue from
+    return LC;
+}
+
+
+void Symbol::updateRelocationTable(){
+    // Update the relocation table
+    for (int i = 0; i < this->relocationTable.size(); i ++){
+
+        for (int j = 0; j < this->literals.size(); j++){
+
+            if (this->literals[j]->symbolIndex == -1){
+                continue;
+            }
+            else if (this->literals[j]->symbolIndex == this->relocationTable[i]->symbolIndex && this->literals[j]->index == this->relocationTable[i]->literalIndex){
+                // We set the offset (location) for the relocation entry to the location of the literal (which we updated earlier)
+                this->relocationTable[i]->location = this->literals[j]->location;
+                break;
+            }
+        }
+    }
+}
+
 Symbol::~Symbol(){
 }

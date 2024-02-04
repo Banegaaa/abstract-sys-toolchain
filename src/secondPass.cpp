@@ -728,8 +728,26 @@ int secondPass(){
                 break;
 
             case SECTION:
-                // first, we need to set the current LC value to the sectionLCMap, so we'll know from where to continue if this section comes up again
                 if (currentSection != ""){
+
+                    // we need to add jmp pool_of_literals to machine code
+                    tempSymbolSecondPass = getSectionSymbol(currentSection);
+                    tempSymbolSecondPass->machineCode.push_back(0x30F00000 | (LC + tempSymbolSecondPass->literals.size() * 4));  // jmp pool_of_literals
+
+                    // increment LC, because we added jmp instruction
+                    LC += 4;
+
+                    // set the section size
+                    tempSymbolSecondPass->sectionSize = LC + tempSymbolSecondPass->literals.size() * 4;
+
+                    // TODO: Do we need to update locations table? There are some new literals added in the second pass
+                    // For now, let's do it
+                    LC = tempSymbolSecondPass->updateLiteralTable(LC);
+                    
+                    // Update the relocation table as well:
+                    tempSymbolSecondPass->updateRelocationTable();
+
+                    // Remember where this section should continue from if it appears again                    
                     sectionLCMap[currentSection] = LC;
                 }
                 // then, we need to set the current section to the new section

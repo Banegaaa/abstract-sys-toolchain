@@ -452,8 +452,15 @@ int firstPass(){
 
                     // first, set the size of the previous section (if there is one)
                     if (currentSection != ""){
+
+                        // First, we increment LC by 4, to leave space for the jmp pool_of_literals instruction
+                        // WHAT IF THERE ARE NO LITERALS?! -> Then we will just execute the jump to the next instruction
+                        LC += 4;
+
+                        // Now we set the size of the previous section to LC + size_of_pool_of_literals
                         tempSymbol = symbolExists(currentSection);
-                        tempSymbol->setSectionSize(LC);
+                        tempSymbol->setSectionSize(LC + 4 * tempSymbol->literals.size());
+                        tempSymbol->updateLiteralTable(LC);
                     }
                     
                     tempSymbol = symbolExists(tokenList[i].name);

@@ -42,6 +42,9 @@ class Symbol {
 
     void setZeroValueBytes(int location, int numOfBytes);
 
+    int updateLiteralTable(int LC);
+    void updateRelocationTable();
+
     ~Symbol();
 
 };
