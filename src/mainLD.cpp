@@ -6,7 +6,7 @@
 
 using namespace std;
 
-unordered_map<string, int> placeSections;  // (section_name, address)
+vector<pair<string, int> > placeSections;  // (section_name, address)
 
 string arg;
 string sectionName;
@@ -68,7 +68,8 @@ int main(int argc, char *argv[])
             address = tmp.substr(tmp.find("@") + 1);  // address == 0x4000F000
 
             // Add to placeSections map
-            placeSections.insert(std::make_pair(sectionName, stoi(address, nullptr, 16)));
+            // placeSections.insert(std::make_pair(sectionName, stoi(address, nullptr, 16)));
+            placeSections.push_back(std::make_pair(sectionName, stoi(address, nullptr, 16)));
             
         }
     }
@@ -110,7 +111,7 @@ int main(int argc, char *argv[])
 
     linker->sectionPlacing();
 
-    linker->fixOverlaps();
+    linker->fixOverlaps3();
 
     linker->fixAddresses();
     
