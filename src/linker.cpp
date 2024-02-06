@@ -664,10 +664,8 @@ void Linker::setMachineCodeAddresses(){
         SymbolLD* sectionSymbol = this->sections[i].second.first;
         int address = this->sections[i].second.second;
 
-        // HERE WE ONLY WANT DIRECTIVES/INSTRUCTION MACHINE CODE, WE DO NOT WANT LITERAL POOL MACHINE CODE
-        for (int j = 0; j < sectionSymbol->machineCode.size() - sectionSymbol->literalTable.size(); j++){
-
-            // TODO: What if the size of some literal is 3 half-bytes? (1.5 bytes, ex: 0x123)
+        // Literals are counted into the machine code
+        for (int j = 0; j < sectionSymbol->machineCode.size(); j++){
 
             // machineCode is a vector of strings
             // each string character represents 1 half-byte (4 bits)

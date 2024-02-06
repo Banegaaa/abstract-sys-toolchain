@@ -193,7 +193,7 @@ void ParserLD::parseMachineCode(vector<string> tokens, SymbolLD* sectionSymbol){
 
     // now we will get the number of bytes in machine code
 
-    sectionSymbol->sectionSizeWithLiterals = machineCodeString.size() / 2;
+    sectionSymbol->sectionSize = machineCodeString.size() / 2;
 
 
 }

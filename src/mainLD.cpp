@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
     linker->setMachineCodeAddresses();
 
-    // linker->processRelocations();
+    linker->processRelocations();
 
     linker->writeOutputFile();
 
