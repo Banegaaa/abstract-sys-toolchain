@@ -18,7 +18,7 @@ bool compareByAddress(const std::pair<std::string, std::pair<SymbolLD*, int> >& 
 }
 
 
-Linker::Linker(bool hexFlag, unordered_map<string, int> placeSections, vector<string> inputFileNames, string outputFileName){
+Linker::Linker(bool hexFlag, vector<pair<string, int> > placeSections, vector<string> inputFileNames, string outputFileName){
     this->hexFlag = hexFlag;
     this->placeSections = placeSections;
 
@@ -102,10 +102,11 @@ void Linker::sectionPlacing(){
     // Go through placeSections map
     // for every section, loop through all parsers so we can check if that section exists in that parser
 
-    for (unordered_map<string,int>::iterator it = this->placeSections.begin(); it != this->placeSections.end(); it++){
+    for (int it = 0; it < this->placeSections.size(); it++){
         
-        string sectionName = it->first;  // first = key = section_name
-        int address = it->second;        // second = value = address
+        string sectionName = this->placeSections[it].first;  // first = key = section_name
+        int address = this->placeSections[it].second;        // second = value = address
+
 
         for (int i = 0; i < this->parsers.size(); i++){
             SymbolLD* sectionSymbol = this->parsers[i]->getSectionSymbolByName(sectionName);
@@ -186,6 +187,7 @@ void Linker::sectionPlacing(){
                         }
                     }
                     // THERE IS NO ELSE, BECAUSE IF IT EXISTS FROM ANOTHER PARSER, WE ALREADY ADDED IT
+                    // TODO: Check if this is correct, maybe we need to append some sections
                 }
                 else {
 
@@ -197,20 +199,22 @@ void Linker::sectionPlacing(){
         }
     }
 
-    // for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
-    //     std::string fileName = it->first;
-    //     SymbolLD* symbolPointer = it->second.first;
-    //     int address = it->second.second;
+    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+        std::string fileName = it->first;
+        SymbolLD* symbolPointer = it->second.first;
+        int address = it->second.second;
 
-    //     // Print in the specified format
-    //     // std::std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << std::endl;
-    // }
+        // Print in the specified format
+        std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << std::endl;
+    }
 
 }
 
 
 void Linker::fixOverlaps(){
     // TODO: CHECK IF WE ARE ALLOWED TO MOVE THE SECTIONS THAT ARE PLACED BY THE -place FLAG?
+
+    bool overlaps = false;
 
     if (this->sections.size() <= 1){
         // There is only 1 section, we don't need to fix anything
@@ -222,25 +226,40 @@ void Linker::fixOverlaps(){
 
     // Iterate through sections, starting from the second section
     for (size_t i = 1; i < sections.size(); ++i) {
+        
+        overlaps = false;
+
         const std::pair<std::string, std::pair<SymbolLD*, int> >& currentSection = sections[i];
         const std::pair<std::string, std::pair<SymbolLD*, int> >& precedingSection = sections[i - 1];
 
         // Check for overlap with the preceding section
-        if (currentSection.second.second < precedingSection.second.second + precedingSection.second.first->sectionSizeWithLiterals) {  // TODO: Check if it should be sectionSize or sectionSizeWithLiterals
+        if (precedingSection.second.second <= currentSection.second.second < precedingSection.second.second + precedingSection.second.first->sectionSize) {  // TODO: Check if it should be sectionSize or sectionSizeWithLiterals
+            
+            overlaps = true;
+            
             // Adjust the address to avoid overlap
-            int newAddress = precedingSection.second.second + precedingSection.second.first->sectionSizeWithLiterals;
+            int newAddress = precedingSection.second.second + precedingSection.second.first->sectionSize;
             sections[i].second.second = newAddress;
+
+            std::cout << "Nova adresa za sekciju: " << currentSection.second.first->name << " je: " << hex << newAddress << std::endl;
 
             // Check for further overlaps with higher-addressed sections
             for (size_t j = i + 1; j < sections.size(); ++j) {
                 if (sections[j].second.second < newAddress) {
                     // Move higher-addressed sections to avoid overlaps
                     sections[j].second.second = newAddress;
-                    newAddress += sections[j].second.first->sectionSizeWithLiterals;
+                    newAddress += sections[j].second.first->sectionSize;
                 } else {
                     break;  // Stop checking once no more overlaps are found
                 }
             }
+
+            // Sort again after fixing the overlaps
+            std::sort(this->sections.begin(), this->sections.end(), compareByAddress);
+        }
+
+        if (!overlaps) {
+
         }
     }
 
@@ -255,6 +274,206 @@ void Linker::fixOverlaps(){
     //     std::std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << 
     //     " - " << hex << address + symbolPointer->sectionSizeWithLiterals << std::endl;
     // }
+}
+
+
+void Linker::fixOverlaps2(){
+
+    std::cout << "FIXING OVERLAPS 2" << endl;
+
+    bool overlaps = false;
+    bool finished = false;
+
+    if (this->sections.size() <= 1){
+        // There is only 1 section, we don't need to fix anything
+        return;
+    }
+
+    // print out the section file and names
+    for (int i = 0; i < this->sections.size(); i++){
+        std::cout << "File: " << this->sections[i].first << " Section: " << this->sections[i].second.first->name << " Address: " << hex << this->sections[i].second.second << endl;
+    }
+
+    // Sort the sections by address in ascending order
+    std::sort(this->sections.begin(), this->sections.end(), compareByAddress);
+
+    // print out the section file and names after sorting
+    for (int i = 0; i < this->sections.size(); i++){
+        std::cout << "File: " << this->sections[i].first << " Section: " << this->sections[i].second.first->name << " Address: " << hex << this->sections[i].second.second << endl;
+    }
+
+    // Start a loop for fixing overlaps until there are no more overlaps
+    while (!finished){
+        // start from the second section, so we have a previous section for comparing
+
+        for (int i = 1; i < this->sections.size(); ++i){
+            overlaps = false;
+
+            int previousEndAddress = this->sections[i - 1].second.second + this->sections[i - 1].second.first->sectionSize;
+            string previousSectionName = this->sections[i - 1].second.first->name;
+
+            if (this->sections[i].second.second < previousEndAddress){
+
+                std::cout << "PREKLAPANJE: " << this->sections[i].second.first->name << " i " << this->sections[i - 1].second.first->name << endl;
+                std::cout << "ADRESA PREKLAPANJA: " << hex << this->sections[i].second.second << " i " << hex << previousEndAddress << endl;
+                // There is an overlap
+                overlaps = true;
+
+                // We need to check if the following section is the same name as the previous
+                // If it is, we need to move it after the last section that has the same name as the previous (previousSectionName)
+
+                if (i + 1 < this->sections.size() && this->sections[i + 1].second.first->name.compare(previousSectionName) == 0){
+                    // We need to move the following section after the last section that has the same name as the previous
+                    int lastSectionWithSameNameIndex = i + 1;
+
+                    for (int j = i + 1; j < this->sections.size(); j++){
+                        if (this->sections[j].second.first->name.compare(previousSectionName) == 0){
+                            lastSectionWithSameNameIndex = j;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+
+                    // Move the section after the last section that has the same name as the previous
+                    this->sections[i].second.second = this->sections[lastSectionWithSameNameIndex].second.second + this->sections[lastSectionWithSameNameIndex].second.first->sectionSize;
+                }
+                else {
+                    // We need to move the section after the previous section
+                    this->sections[i].second.second = previousEndAddress;
+                }
+            }
+            
+            // Sort the sections after fixing the overlaps
+            std::sort(this->sections.begin(), this->sections.end(), compareByAddress);
+        }
+
+        finished = !overlaps;
+    }
+}
+
+
+void Linker::fixOverlaps3(){
+
+    if (this->sections.size() <= 1){
+        // There is only 1 section, we don't need to fix anything
+        return;
+    }
+
+    // We will create a vector from sections vector, where we will have only 1 element for each section name
+    // We will use this vector to check for overlaps
+
+    std::vector<std::pair<std::string, std::pair<int, int> > > mergedSections;
+
+    // string element -> section name
+    // first int -> start address of the lowest section with that name
+    // second int -> end address of the highest section with that name
+
+    // Now we need to fill the sectionsWithUniqueNames vector
+
+    for (int i = 0; i < this->sections.size(); i++){
+        string sectionName = this->sections[i].second.first->name;
+        int sectionStartAddress = this->sections[i].second.second;
+        int sectionEndAddress = this->sections[i].second.second + this->sections[i].second.first->sectionSize;
+
+        if (mergedSections.empty()){
+            mergedSections.push_back(make_pair(sectionName, make_pair(sectionStartAddress, sectionEndAddress)));
+        }
+        else if (mergedSections.back().first.compare(sectionName) == 0){
+            // We have the same section name as the last added element in the mergedSections vector
+            // We need to check if the start address is lower than the start address of the last added element
+            // We also need to check if the end address is higher than the end address of the last added element
+
+            if (sectionEndAddress > mergedSections.back().second.second){
+                mergedSections.back().second.second = sectionEndAddress;
+            }
+        }
+        else {
+            // We have a new section name
+            mergedSections.push_back(make_pair(sectionName, make_pair(sectionStartAddress, sectionEndAddress)));
+        }
+    }
+
+    // print out the mergedSections vector
+
+    // for (int i = 0; i < mergedSections.size(); i++){
+    //     std::cout << "Section name: " << mergedSections[i].first << " Start address: " << hex << mergedSections[i].second.first << " End address: " << hex << mergedSections[i].second.second << endl;
+    // }
+
+    // Now we will fix the overlaps in the mergedSections vector
+    bool overlaps = false;
+    bool finished = false;
+
+    while (!finished){
+
+        // We start from the second section (that is the current one)
+        for (int i = 1; i < mergedSections.size(); i++){
+            overlaps = false;
+            int previousStartAddress = mergedSections[i - 1].second.first;
+            int previousEndAddress = mergedSections[i - 1].second.second;
+            int currentStartAddress = mergedSections[i].second.first;
+
+            if (previousStartAddress <= currentStartAddress && currentStartAddress < previousEndAddress){
+                // There is an overlap
+                overlaps = true;
+
+                // We need to move the current section
+                int difference = previousEndAddress - currentStartAddress;
+                mergedSections[i].second.first = mergedSections[i - 1].second.second;
+                mergedSections[i].second.second = mergedSections[i].second.second + difference;
+            }
+        }
+
+        finished = !overlaps;
+    }
+
+    // print out the mergedSections vector after fixing the overlaps
+
+    for (int i = 0; i < mergedSections.size(); i++){
+        std::cout << "Section name: " << mergedSections[i].first << " Start address: " << hex << mergedSections[i].second.first << " End address: " << hex << mergedSections[i].second.second << endl;
+    }
+
+    // We have now fixed the overlaps in the mergedSections vector, we need to apply the changes to the sections vector
+    // We will go through the sections vector, and for the first showing of each section (name), we will calculate the offset from it's original starting address and the new starting address
+    // Then we will add that offset to the starting address of all the sections with the same name
+
+    for (int i = 0; i < mergedSections.size(); i++){
+        string sectionName = mergedSections[i].first;
+
+        // We need to find the first showing of the section with the name sectionName in the sections vector
+        int firstShowingIndex = -1;
+        int offset = 0;
+
+        for (int j = 0; j < this->sections.size(); j++){
+            if (this->sections[j].second.first->name.compare(sectionName) == 0){
+                firstShowingIndex = j;
+                offset = mergedSections[i].second.first - this->sections[j].second.second;
+                break;
+            }
+        }
+
+        if (offset == 0){
+            // We don't need to do anything
+            continue;
+        }
+        else{
+            std::cout << "Offset: " << hex << offset << endl;
+        }
+
+        // We need to add the offset to the starting address of all the sections with the same name
+        for (int j = firstShowingIndex; j < this->sections.size(); j++){
+            if (this->sections[j].second.first->name.compare(sectionName) == 0){
+                this->sections[j].second.second += offset;
+            }
+        }
+    }
+
+    // print out the sections vector after fixing the overlaps
+
+    for (int i = 0; i < this->sections.size(); i++){
+        std::cout << "File: " << this->sections[i].first << " Section: " << this->sections[i].second.first->name << " Address: " << hex << this->sections[i].second.second << endl;
+    }
+
 }
 
 

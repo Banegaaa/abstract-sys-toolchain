@@ -12,7 +12,7 @@ class Linker {
 
     bool hexFlag;
     
-    unordered_map<string, int> placeSections;  // (section_name, address)
+    vector<pair<string, int> > placeSections;  // (section_name, address)
     
     vector<ifstream> inputFiles;
 
@@ -26,7 +26,7 @@ class Linker {
 
     vector<SymbolLD*> globalSymbolTable;
 
-    Linker(bool hexFlag, unordered_map<string, int> placeSections, std::vector<string> inputFileNames, string outputFileName);
+    Linker(bool hexFlag, vector<pair<string, int> > placeSections, std::vector<string> inputFileNames, string outputFileName);
     ~Linker();
 
     int findTheNextAvailablePossition();  // This function will find the next available possition to place a section
@@ -34,6 +34,8 @@ class Linker {
     void sectionPlacing();  // This function will fill the sections vector
 
     void fixOverlaps();  // This function will fix overlaps in the sections vector (if there are any)
+    void fixOverlaps2();  // This function will fix overlaps in the sections vector (if there are any)
+    void fixOverlaps3();  // This function will fix overlaps in the sections vector (if there are any)
 
     void fixAddresses();  // Fixing symbol values, literal and relocation offsets
 
