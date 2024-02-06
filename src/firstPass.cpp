@@ -460,7 +460,7 @@ int firstPass(){
                         // Now we set the size of the previous section to LC + size_of_pool_of_literals
                         tempSymbol = symbolExists(currentSection);
                         tempSymbol->setSectionSize(LC + 4 * tempSymbol->literals.size());
-                        tempSymbol->updateLiteralTable(LC);
+                        LC = tempSymbol->updateLiteralTable(LC);
                     }
                     
                     tempSymbol = symbolExists(tokenList[i].name);

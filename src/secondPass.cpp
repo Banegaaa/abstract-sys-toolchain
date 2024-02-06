@@ -1032,6 +1032,12 @@ int secondPass(){
                 // We need to reset the section size, because there may be some new literals added in the second pass
                 tempSymbolSecondPass->sectionSize = LC + tempSymbolSecondPass->literals.size() * 4;
 
+                // Update the literal table
+                LC = tempSymbolSecondPass->updateLiteralTable(LC);
+
+                // Update the relocation table as well:
+                tempSymbolSecondPass->updateRelocationTable();
+
                 // set the LC of the current section to the sectionLCMap just in case
                 sectionLCMap[currentSection] = LC;
 
