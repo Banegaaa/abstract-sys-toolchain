@@ -140,7 +140,6 @@ void callAndJmpCase(int &LC, int &i){
     }
     else {  // tokenList[i].value == NAME
         // IN ANY CASE, THE VALUE OF THE SYMBOL WILL BE SET IN THE POOL OF LITERALS (machineCodeWord = mem32[...])
-        std::cout << "ALO NE MOZES UCI OVDE AKO JE LITERAL" << std::endl;
         if (operation == CALL){
             machineCodeWord = 0x21F00000;
         }
@@ -154,7 +153,6 @@ void callAndJmpCase(int &LC, int &i){
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
         Literal* newLiteral = new Literal(0, LC, 4, index, symbolIndex);  // we don't know the value of the symbol yet, so we'll set it to 0, size is 4 bytes
-        std::cout << "LC LITERALA JE: " << LC << std::endl;
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
