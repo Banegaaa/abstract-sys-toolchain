@@ -142,6 +142,7 @@ void Emulator::execute(){
     while (!halt) {
 
         string instructionCode = this->getByteFromMemory(this->gpr[15]);
+        // std::cout << "Instruction code: " << instructionCode << endl;
 
         if (instructionCode.compare(HALT) == 0) {
             // HALT
@@ -457,6 +458,8 @@ void Emulator::execute(){
 
             this->gpr[15] += 4;
 
+            // TODO: THIS IS DIFFERENT ENDIANESS THAN IN THE ASSEMBLER? IT IS DIFFERENT THAN THE WAY WE EXTRACT FROM MEMORY
+
             byte = std::to_string(this->gpr[15] & 0xFF);
             this->writeByteToMemory(this->gpr[14] - 1, byte);  // gpr[14] - 1 because sp is pointing to the last taken address
 
@@ -517,15 +520,15 @@ void Emulator::execute(){
 
             // pc <= mem32[gpr[A] + gpr[B] + D]
 
-            // TODO: CHECK IF THIS WILL GET THE CORRECT LITERAL FROM MEMORY
-
-            int address = this->gpr[A] + Disp;
+            int address = this->gpr[A] + Disp - 4;  // -4 because we incremented the pc by 4 before pushing and the displacement to the literal is counted from the current instruction
 
             // *** IMPORTANT ***
             // When we need to fetch 4 bytes from memory, we need to fetch them in reverse order, because of the little endianess of the system
             // When we were storing the bytes, we first stored the highest byte, because the stack pointer is decreasing when we push!!!
 
+            // TODO: Is this little endianess? Check if it's ok
             machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
+
 
             this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
         }
