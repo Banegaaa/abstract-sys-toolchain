@@ -92,13 +92,13 @@ void jmpAndCallCase(int &LC, int &i){
             if (tokenList[i].value == DEC_LITERAL){
                 if (!canFitIn12Bits(tokenList[i].name, i)){
                     tempSymbol = symbolExists(currentSection);
-                    tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), LC, 4, tempSymbol->literals.size(), -1));
+                    tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), 0, 4, tempSymbol->literals.size(), -1));  // location is 0, because we will set it later
                 }
             }
             else if (tokenList[i].value == HEX_LITERAL){
                 if (!canFitIn12Bits(tokenList[i].name, i)){
                     tempSymbol = symbolExists(currentSection);
-                    tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), LC, 4, tempSymbol->literals.size(), -1));
+                    tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), 0, 4, tempSymbol->literals.size(), -1));
                 }
             }
         }
@@ -141,13 +141,13 @@ void jumpInstructions(int &LC, int &i){
         if (tokenList[i].value == DEC_LITERAL){
             tempSymbol = symbolExists(currentSection);
             if (!canFitIn12Bits(tokenList[i].name, i)){
-                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), LC, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), 0, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
             }
         }
         else if (tokenList[i].value == HEX_LITERAL){
             tempSymbol = symbolExists(currentSection);
             if (!canFitIn12Bits(tokenList[i].name, i)){
-                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), LC, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), 0, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
             }
         }
     }
@@ -170,7 +170,7 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
             }
             if (!canFitIn12Bits(tokenList[i].name, i)){
                 tempSymbol = symbolExists(currentSection);
-                tempSymbol->addLiteral(new Literal(value, LC, sizeof(value), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(value, 0, sizeof(value), tempSymbol->literals.size(), -1));
             }
         }
         else {
@@ -199,7 +199,7 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         }
         if (!literalExists(value, currentSection)){
             tempSymbol = symbolExists(currentSection);
-            tempSymbol->addLiteral(new Literal(value, LC, sizeof(value), tempSymbol->literals.size(), -1));
+            tempSymbol->addLiteral(new Literal(value, 0, sizeof(value), tempSymbol->literals.size(), -1));
         }
         LC += 8;
     }
@@ -297,10 +297,10 @@ void storeOperand(int &LC, int i){
         if (!canFitIn12Bits(tokenList[i].name, i)){
             tempSymbol = symbolExists(currentSection);
             if (tokenList[i].value == DEC_LITERAL){
-                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), LC, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), 0, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
             }
             else {  // HEX_LITERAL
-                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), LC, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), 0, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
             }
         }
         LC += 4;

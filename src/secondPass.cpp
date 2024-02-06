@@ -55,8 +55,19 @@ int literalExists(int value){ // returns the index of the literal if it exists i
         }
     }
     return -1;
+}
 
+int findLiteralLocation(int value){ // returns the location of the literal if it exists in the current section, -1 otherwise
+    // We will use this to calculate offset from current LC to the location of the literal
+    // so we can calculate the correct addres from which we will get the literal from memory during emulation!
 
+    tempSymbolSecondPass = getSectionSymbol(currentSection);
+    for (int i = 0; i < tempSymbolSecondPass->literals.size(); i++){
+        if (tempSymbolSecondPass->literals[i]->value == value){
+            return tempSymbolSecondPass->literals[i]->location;
+        }
+    }
+    return -1;
 }
 
 void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){
@@ -87,7 +98,8 @@ void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){
 void callAndJmpCase(int &LC, int &i){
     int operation = tokenList[i].value; // CALL or JMP, we'll use this to set the machine code word
     i++;
-    int index;  // literal index, if needed
+    int literalLocation;  // literal location
+    int index;
     
     // *** we have two different instruction codes, one if the literal/symbol_value can fit in 3 bytes and another one if it can't ***
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
@@ -115,19 +127,20 @@ void callAndJmpCase(int &LC, int &i){
             else {  // operation == JMP
                 machineCodeWord = 0x38F00000;
             }
-            index = literalExists(value);
-            if (index == -1){
+            literalLocation = findLiteralLocation(value);
+            if (literalLocation == -1){  // This should never happen, TODO: PROVE IT
                 // create a new literal
+                std::cout << "This should never happen" << std::endl;
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
-                index = tempSymbolSecondPass->literals.size();
-                Literal* newLiteral = new Literal(value, LC, sizeof(value), index, -1);
+                Literal* newLiteral = new Literal(value, 0, sizeof(value), tempSymbolSecondPass->literals.size(), -1);
                 tempSymbolSecondPass->addLiteral(newLiteral);
             }
-            machineCodeWord |= index;
+            machineCodeWord |= (literalLocation - LC);
         }
     }
     else {  // tokenList[i].value == NAME
         // IN ANY CASE, THE VALUE OF THE SYMBOL WILL BE SET IN THE POOL OF LITERALS (machineCodeWord = mem32[...])
+        std::cout << "ALO NE MOZES UCI OVDE AKO JE LITERAL" << std::endl;
         if (operation == CALL){
             machineCodeWord = 0x21F00000;
         }
@@ -172,7 +185,8 @@ void jumpInstructionsCase(int &LC, int &i){
     i++; // get ,
     i++; // get operand
 
-    int index;  // literal index, if needed
+    int literalLocation;  // literal locatio
+    int index;
 
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
         if (tokenList[i].value == DEC_LITERAL){
@@ -208,17 +222,17 @@ void jumpInstructionsCase(int &LC, int &i){
                 machineCodeWord = 0x3BF00000;
             }
 
-            index = literalExists(value);
-            if (index == -1){
+            literalLocation = findLiteralLocation(value);
+            if (literalLocation == -1){
                 // create a new literal
+                std::cout << "This should never happen" << std::endl;
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
-                index = tempSymbolSecondPass->literals.size();
-                Literal* newLiteral = new Literal(value, LC, sizeof(value), index, -1);
+                Literal* newLiteral = new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), -1);
                 tempSymbolSecondPass->addLiteral(newLiteral);
             }
             machineCodeWord |= (reg1 << 16);
             machineCodeWord |= (reg2 << 12);
-            machineCodeWord |= index;
+            machineCodeWord |= (literalLocation - LC);
         }
     }
     else {  // tokenList[i].value == NAME
@@ -261,7 +275,8 @@ void jumpInstructionsCase(int &LC, int &i){
 void loadInstruction(int &LC, int &i){
     i++; // get operand
 
-    int index; // literal index, if needed
+    int literalLocation; // literal location
+    int index;
 
     if (tokenList[i].value == IMM_ADR){
         i++; // get literal/symbol
@@ -284,8 +299,8 @@ void loadInstruction(int &LC, int &i){
                 registerNumber = 15;  // pc
                 machineCodeWord |= (registerNumber << 16);
 
-                index = literalExists(value);  // it will exist, because we set it in the first pass
-                machineCodeWord |= index;
+                literalLocation = findLiteralLocation(value);  // it will exist, because we set it in the first pass
+                machineCodeWord |= (literalLocation - LC);
             }
         }
         else {
@@ -341,8 +356,8 @@ void loadInstruction(int &LC, int &i){
         registerNumber = 15;  // pc
         machineCodeWord |= (registerNumber << 16);
 
-        index = literalExists(value);  // it will exist
-        machineCodeWord |= index;
+        literalLocation = findLiteralLocation(value);  // it will exist
+        machineCodeWord |= (literalLocation - LC);
 
         // finish up the instruction
         i++; // get ,
@@ -523,7 +538,8 @@ void storeInstruction(int &LC, int &i){
     i++; // get ,
     i++; // get operand
 
-    int index; // literal index, if needed
+    int literalLocation; // literal location
+    int index;
 
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
         
@@ -547,8 +563,8 @@ void storeInstruction(int &LC, int &i){
             machineCodeWord |= (registerNumber << 20);  // regA
             machineCodeWord |= (reg1 << 12);  // regC
 
-            index = literalExists(value);  // it will exist, because we set it in the first pass
-            machineCodeWord |= index;
+            literalLocation = findLiteralLocation(value);  // it will exist, because we set it in the first pass
+            machineCodeWord |= (literalLocation - LC);
         }
 
         // write machine code word to the current section
