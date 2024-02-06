@@ -525,7 +525,7 @@ void Emulator::execute(){
             // When we need to fetch 4 bytes from memory, we need to fetch them in reverse order, because of the little endianess of the system
             // When we were storing the bytes, we first stored the highest byte, because the stack pointer is decreasing when we push!!!
 
-            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+            machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
 
             this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
         }
@@ -572,13 +572,21 @@ void Emulator::execute(){
             strDisp = strDisp.substr(1);                                      // take only the lower half-byte
             strDisp = strDisp + this->getByteFromMemory(this->gpr[15] + 3);   // here we have displacement in string form
 
+            std::cout << "DISPLACEMENT: " << strDisp << endl;
+
             int Disp = stoi(strDisp, nullptr, 16);
+
+            std::cout << "DISPLACEMENT: " << Disp << endl;
 
             // pc <= mem32[gpr[A] + gpr[B] + D]
 
             int address = this->gpr[A] + Disp;
 
-            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+            std::cout << "ADDRESS: " << hex << address << endl;
+
+            machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
+
+            std::cout << "MACHINE CODE WORD: " << machineCodeWord << endl;
 
             this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
         }
@@ -648,7 +656,7 @@ void Emulator::execute(){
 
             int address = this->gpr[A] + Disp;
 
-            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+            machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
 
             if (this->gpr[B] == this->gpr[C]){
                 // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
@@ -726,7 +734,7 @@ void Emulator::execute(){
 
             int address = this->gpr[A] + Disp;
 
-            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+            machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
 
             if (this->gpr[B] != this->gpr[C]){
                 // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
@@ -804,7 +812,7 @@ void Emulator::execute(){
 
             int address = this->gpr[A] + Disp;
 
-            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+            machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
 
             if (this->gpr[B] > this->gpr[C]){
                 // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
@@ -903,7 +911,7 @@ void Emulator::execute(){
 
             int address = this->gpr[B] + this->gpr[C] + Disp;
 
-            machineCodeWord = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+            machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
 
             this->gpr[A] = stoi(machineCodeWord, nullptr, 16);
 
@@ -1013,7 +1021,8 @@ void Emulator::execute(){
 
             int address = this->gpr[A] + this->gpr[B] + Disp;  // Address from which we get the address for setting gpr[C]
 
-            string strAddress2 = this->getByteFromMemory(address + 3) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address);
+            string strAddress2 = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
+            
             int address2 = stoi(strAddress2, nullptr, 16);
 
             this->writeByteToMemory(address2, std::to_string(this->gpr[C] & 0xFF));
