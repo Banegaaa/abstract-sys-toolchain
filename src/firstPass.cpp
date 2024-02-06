@@ -696,7 +696,11 @@ int firstPass(){
             case ENDD:
                 // set the size of the last section
                 tempSymbol = symbolExists(currentSection);
-                tempSymbol->setSectionSize(LC);
+                
+                // Increment LC by 4, to leave space for the jmp pool_of_literals instruction
+                LC += 4;
+                tempSymbol->setSectionSize(LC + 4 * tempSymbol->literals.size());
+
                 std::cout << "Symbol table:" << endl;
                 for (int i = 0; i < symbolTable.size(); i++){
                     std::cout << symbolTable[i].to_string() << endl;

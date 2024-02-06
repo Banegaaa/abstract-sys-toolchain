@@ -1021,8 +1021,21 @@ int secondPass(){
                 
             
             case ENDD:
+                // we need to add jmp pool_of_literals to machine code
+                tempSymbolSecondPass = getSectionSymbol(currentSection);
+
+                tempSymbolSecondPass->machineCode.push_back(0x30F00000 | (tempSymbolSecondPass->literals.size() * 4 + 4));  // jmp pool_of_literals
+
+                // increment LC, because we added jmp instruction
+                LC += 4;
+
+                // We need to reset the section size, because there may be some new literals added in the second pass
+                tempSymbolSecondPass->sectionSize = LC + tempSymbolSecondPass->literals.size() * 4;
+
                 // set the LC of the current section to the sectionLCMap just in case
                 sectionLCMap[currentSection] = LC;
+
+
                 // for each section, go through machine code and write out (on std::cout) in hex format each byte of the section size
                 std::cout << "-------------------------------------" << endl;
                 for (int j = 0; j < symbolTable.size(); j++){
