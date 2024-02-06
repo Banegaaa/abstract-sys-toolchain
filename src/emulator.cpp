@@ -135,6 +135,10 @@ void Emulator::execute(){
     string byte;
     string machineCodeWord;
 
+    // for (int i = 0; i < this->memory.size(); i++) {
+    //     cout << hex << this->memory[i].first << ": " << this->memory[i].second << endl;
+    // }
+
     while (!halt) {
 
         string instructionCode = this->getByteFromMemory(this->gpr[15]);
