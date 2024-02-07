@@ -224,7 +224,7 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         // OPERAND == [%register]
         LC += 4;
     }
-    else if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_L_ADR){
         // OPERAND == [%register + dec_literal]
 
         // extract the dec_literal, and see if it fits to 12b, if it doesn't -> error
@@ -245,7 +245,7 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         
         LC += 4;
     }
-    else if (tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_HEXL_ADR){
         // OPERAND == [%register + hex_literal]
 
         // extract the hex_literal, and see if it fits to 12b, if it doesn't -> error
