@@ -702,6 +702,8 @@ int firstPass(){
                 LC += 4;
                 tempSymbol->setSectionSize(LC + 4 * tempSymbol->literals.size());
 
+                tempSymbol->updateLiteralTable(LC);
+
                 std::cout << "Symbol table:" << endl;
                 for (int i = 0; i < symbolTable.size(); i++){
                     std::cout << symbolTable[i].to_string() << endl;
