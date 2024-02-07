@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include "../inc/symbol.h"
 #include "../inc/token.h"
 #include "../inc/firstPass.h"
@@ -40,6 +41,30 @@ string collapseWhitespaces(const string& input) {
     }
 
     return result;
+}
+
+
+std::string convertToFourByteHex(const std::string& input) {
+    // Check if input starts with "0x" to determine the base
+    bool isHex = (input.size() >= 2 && input.substr(0, 2) == "0x");
+
+    // Initialize stringstream with the input string
+    std::istringstream iss(input);
+
+    // Initialize variable to store the converted integer
+    unsigned long long num;
+
+    // Convert string to integer based on the base
+    if (isHex)
+        iss >> std::hex >> num;
+    else
+        iss >> std::dec >> num;
+
+    // Format the result as a 4-byte hexadecimal number
+    std::ostringstream oss;
+    oss << "0x" << std::setfill('0') << std::setw(8) << std::hex << num;
+
+    return oss.str();
 }
 
 
@@ -192,7 +217,7 @@ int main(int argc, char *argv[])
             
             // now continue this with literals
             for (int j = 0; j < symbolTable[i].literals.size(); j++){
-                outputFile << std::setw(8) << std::setfill('0') << std::hex << (int)symbolTable[i].literals[j]->value << " ";
+                outputFile << std::setw(8) << std::setfill('0') << std::hex << convertToFourByteHex(symbolTable[i].literals[j]->value) << " ";
             }
 
             outputFile << endl;

@@ -24,7 +24,7 @@ Symbol* tempSymbolSecondPass;
 
 // helpers
 int numOfBytes = 0;
-int value = 0;
+long int value = 0;
 unsigned int machineCodeWord;
 int registerNumber;
 string registerName;
@@ -47,7 +47,7 @@ Symbol* getSectionSymbol(string name){
 }
 
 
-int literalExists(int value){ // returns the index of the literal if it exists in the current section, -1 otherwise
+int literalExists(string value){ // returns the index of the literal if it exists in the current section, -1 otherwise
     tempSymbolSecondPass = getSectionSymbol(currentSection);
     for (int i = 0; i < tempSymbolSecondPass->literals.size(); i++){
         if (tempSymbolSecondPass->literals[i]->value == value){
@@ -57,10 +57,11 @@ int literalExists(int value){ // returns the index of the literal if it exists i
     return -1;
 }
 
-int findLiteralLocation(int value){ // returns the location of the literal if it exists in the current section, -1 otherwise
+int findLiteralLocation(string value){ // returns the location of the literal if it exists in the current section, -1 otherwise
     // We will use this to calculate offset from current LC to the location of the literal
     // so we can calculate the correct addres from which we will get the literal from memory during emulation!
 
+    std::cout << "Trazimo literal sa vrednoscu: " << value << std::endl;
     tempSymbolSecondPass = getSectionSymbol(currentSection);
     for (int i = 0; i < tempSymbolSecondPass->literals.size(); i++){
         if (tempSymbolSecondPass->literals[i]->value == value){
@@ -74,16 +75,28 @@ void twoRegisterInstructionMachineCode(int initialMachineCode, int &LC, int &i){
     machineCodeWord = initialMachineCode;
     i++; // get %
     i++; // get register
-    registerName = tokenList[i].name;
-    registerNumber = stoi(registerName.substr(1));
+    if (tokenList[i].value == SP_REG){
+        registerNumber = 14;  // sp = regA
+    }
+    else {
+        registerName = tokenList[i].name;
+        registerNumber = stoi(registerName.substr(1));
+    }
+
     // shift register number to the 4th byte (from the right) of the machine code word
     machineCodeWord |= (registerNumber << 12);
     
     i++; // get ,
     i++; // get %
     i++; // get register
-    registerName = tokenList[i].name;
-    registerNumber = stoi(registerName.substr(1));
+    if (tokenList[i].value == SP_REG){
+        registerNumber = 14;  // sp = regB
+    }
+    else {
+        registerName = tokenList[i].name;
+        registerNumber = stoi(registerName.substr(1));
+    }
+
     // shift register number to the 5th and 6th byte (from the right) of the machine code word
     machineCodeWord |= (registerNumber << 16);
     machineCodeWord |= (registerNumber << 20);
@@ -100,17 +113,21 @@ void callAndJmpCase(int &LC, int &i){
     i++;
     int literalLocation;  // literal location
     int index;
+    string strValue;
     
     // *** we have two different instruction codes, one if the literal/symbol_value can fit in 3 bytes and another one if it can't ***
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
-        if (tokenList[i].value == DEC_LITERAL){
-            value = stoi(tokenList[i].name);
-        }
-        else if (tokenList[i].value == HEX_LITERAL){
-            value = hexToInt(tokenList[i].name);
-        }
+        
+        strValue = tokenList[i].name;
 
         if (canFitIn12Bits(tokenList[i].name, i)){
+            if (tokenList[i].value == DEC_LITERAL){
+                value = stoi(tokenList[i].name);
+            }
+            else if (tokenList[i].value == HEX_LITERAL){
+                value = hexToInt(tokenList[i].name);
+            }
+
             if (operation == CALL){
                 machineCodeWord = 0x20F00000;
             }
@@ -127,12 +144,20 @@ void callAndJmpCase(int &LC, int &i){
             else {  // operation == JMP
                 machineCodeWord = 0x38F00000;
             }
-            literalLocation = findLiteralLocation(value);
+
+            if (tokenList[i].value == DEC_LITERAL){
+                value = stoi(tokenList[i].name);
+            }
+            else if (tokenList[i].value == HEX_LITERAL){
+                value = hexToInt(tokenList[i].name);
+            }
+
+            literalLocation = findLiteralLocation(strValue);
             if (literalLocation == -1){  // This should never happen, TODO: PROVE IT
                 // create a new literal
                 std::cout << "This should never happen" << std::endl;
                 tempSymbolSecondPass = getSectionSymbol(currentSection);
-                Literal* newLiteral = new Literal(value, 0, sizeof(value), tempSymbolSecondPass->literals.size(), -1);
+                Literal* newLiteral = new Literal(strValue, 0, 4, tempSymbolSecondPass->literals.size(), -1);
                 tempSymbolSecondPass->addLiteral(newLiteral);
             }
             machineCodeWord |= (literalLocation - LC);
@@ -170,7 +195,7 @@ void callAndJmpCase(int &LC, int &i){
             
         }
 
-        Literal* newLiteral = new Literal(0, newLocation, 4, index, symbolIndex);  // we don't know the value of the symbol yet, so we'll set it to 0, size is 4 bytes
+        Literal* newLiteral = new Literal("0x0", newLocation, 4, index, symbolIndex);  // we don't know the value of the symbol yet, so we'll set it to 0, size is 4 bytes
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
@@ -191,28 +216,45 @@ void jumpInstructionsCase(int &LC, int &i){
     int operation = tokenList[i].value; // BNE, BEQ, BGT
     i++; // get %
     i++; // get register
-    int reg1 = stoi(tokenList[i].name.substr(1));
+    if (tokenList[i].value == SP_REG){
+        registerNumber = 14;  // sp = reg1
+    }
+    else {
+        registerName = tokenList[i].name;
+        registerNumber = stoi(registerName.substr(1));
+    }
+    int reg1 = registerNumber;
     
     i++; // get ,
     i++; // get %
     i++; // get register
-    int reg2 = stoi(tokenList[i].name.substr(1));
+    if (tokenList[i].value == SP_REG){
+        registerNumber = 14;  // sp = reg2
+    }
+    else {
+        registerName = tokenList[i].name;
+        registerNumber = stoi(registerName.substr(1));
+    }
+    int reg2 = registerNumber;
 
     i++; // get ,
     i++; // get operand
 
     int literalLocation;  // literal locatio
     int index;
+    string strValue;
 
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
-        if (tokenList[i].value == DEC_LITERAL){
-            value = stoi(tokenList[i].name);
-        }
-        else if (tokenList[i].value == HEX_LITERAL){
-            value = hexToInt(tokenList[i].name);
-        }
+        strValue = tokenList[i].name;
 
         if (canFitIn12Bits(tokenList[i].name, i)){
+            if (tokenList[i].value == DEC_LITERAL){
+                value = stoul(tokenList[i].name);
+            }
+            else if (tokenList[i].value == HEX_LITERAL){
+                value = hexToInt(tokenList[i].name);
+            }
+
             if (operation == BEQ){
                 machineCodeWord = 0x31F00000;
             }
@@ -238,14 +280,7 @@ void jumpInstructionsCase(int &LC, int &i){
                 machineCodeWord = 0x3BF00000;
             }
 
-            literalLocation = findLiteralLocation(value);
-            if (literalLocation == -1){
-                // create a new literal
-                std::cout << "This should never happen" << std::endl;
-                tempSymbolSecondPass = getSectionSymbol(currentSection);
-                Literal* newLiteral = new Literal(value, LC, sizeof(value), tempSymbolSecondPass->literals.size(), -1);
-                tempSymbolSecondPass->addLiteral(newLiteral);
-            }
+            literalLocation = findLiteralLocation(strValue);
             machineCodeWord |= (reg1 << 16);
             machineCodeWord |= (reg2 << 12);
             machineCodeWord |= (literalLocation - LC);
@@ -284,7 +319,7 @@ void jumpInstructionsCase(int &LC, int &i){
         }
 
 
-        Literal* newLiteral = new Literal(0, newLocation, 4, index, symbolIndex);
+        Literal* newLiteral = new Literal("0x0", newLocation, 4, index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
@@ -306,18 +341,23 @@ void loadInstruction(int &LC, int &i){
 
     int literalLocation; // literal location
     int index;
+    string strValue;
 
     if (tokenList[i].value == IMM_ADR){
         i++; // get literal/symbol
         
         if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
-            if (tokenList[i].value == DEC_LITERAL){
-                value = stoi(tokenList[i].name);
-            }
-            else if (tokenList[i].value == HEX_LITERAL){
-                value = hexToInt(tokenList[i].name);
-            }
+            strValue = tokenList[i].name;
+
             if (canFitIn12Bits(tokenList[i].name, i)){
+                std::cout << "OVDE NISMO" << std::endl;
+                if (tokenList[i].value == DEC_LITERAL){
+                    value = stoul(tokenList[i].name);
+                }
+                else if (tokenList[i].value == HEX_LITERAL){
+                    value = hexToInt(tokenList[i].name);
+                }
+
                 // If it fits, OC = 0x9, M = 0x1, A = regNum, B = 0, C = 0 (regNum will be set later, this is only for the "operand" part)
                 machineCodeWord = 0x91000000;
                 machineCodeWord |= value;
@@ -328,7 +368,7 @@ void loadInstruction(int &LC, int &i){
                 registerNumber = 15;  // pc
                 machineCodeWord |= (registerNumber << 16);
 
-                literalLocation = findLiteralLocation(value);  // it will exist, because we set it in the first pass
+                literalLocation = findLiteralLocation(strValue);  // it will exist, because we set it in the first pass
                 machineCodeWord |= (literalLocation - LC);
             }
         }
@@ -349,7 +389,7 @@ void loadInstruction(int &LC, int &i){
                 newLocation = tempSymbolSecondPass->literals[tempSymbolSecondPass->literals.size() - 1]->location + 4;
             }
 
-            tempSymbolSecondPass->literals.push_back(new Literal(0, newLocation, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
+            tempSymbolSecondPass->literals.push_back(new Literal("0x0", newLocation, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
             std::cout << "LC LITERALA JE: " << LC << std::endl;
 
             // Create relocation entry
@@ -368,8 +408,14 @@ void loadInstruction(int &LC, int &i){
         i++; // get ,
         i++; // get %
         i++; // get register
-        registerName = tokenList[i].name;
-        registerNumber = stoi(registerName.substr(1));
+        if (tokenList[i].value == SP_REG){
+            registerNumber = 14;  // sp = regA
+        }
+        else {
+            registerName = tokenList[i].name;
+            registerNumber = stoi(registerName.substr(1));
+        }
+
         machineCodeWord |= (registerNumber << 20);
 
         // write machine code word to the current section
@@ -381,9 +427,11 @@ void loadInstruction(int &LC, int &i){
     else if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
         // This will be coded as 2 instructions
         // -> 2 times OC: 0x9, M = 0x2
+        strValue = tokenList[i].name;
+        
         
         if (tokenList[i].value == DEC_LITERAL){
-            value = stoi(tokenList[i].name);
+            value = stoul(tokenList[i].name);
         }
         else if (tokenList[i].value == HEX_LITERAL){
             value = hexToInt(tokenList[i].name);
@@ -395,15 +443,21 @@ void loadInstruction(int &LC, int &i){
         registerNumber = 15;  // pc
         machineCodeWord |= (registerNumber << 16);
 
-        literalLocation = findLiteralLocation(value);  // it will exist
+        literalLocation = findLiteralLocation(strValue);  // it will exist
         machineCodeWord |= (literalLocation - LC);
 
         // finish up the instruction
         i++; // get ,
         i++; // get %
         i++; // get register
-        registerName = tokenList[i].name;
-        registerNumber = stoi(registerName.substr(1));
+        if (tokenList[i].value == SP_REG){
+            registerNumber = 14;  // sp = regA
+        }
+        else {
+            registerName = tokenList[i].name;
+            registerNumber = stoi(registerName.substr(1));
+        }
+
         machineCodeWord |= (registerNumber << 20);
 
         // write machine code word to the current section
@@ -447,7 +501,7 @@ void loadInstruction(int &LC, int &i){
             newLocation = tempSymbolSecondPass->literals[tempSymbolSecondPass->literals.size() - 1]->location + 4;
         }
 
-        Literal* newLiteral = new Literal(0, newLocation, 4, index, symbolIndex);
+        Literal* newLiteral = new Literal("0x0", newLocation, 4, index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
@@ -461,8 +515,14 @@ void loadInstruction(int &LC, int &i){
         i++; // get ,
         i++; // get %
         i++; // get register
-        registerName = tokenList[i].name;
-        registerNumber = stoi(registerName.substr(1));
+        if (tokenList[i].value == SP_REG){
+            registerNumber = 14;  // sp = regA
+        }
+        else {
+            registerName = tokenList[i].name;
+            registerNumber = stoi(registerName.substr(1));
+        }
+
         machineCodeWord |= (registerNumber << 20);
 
         // write machine code word to the current section
@@ -484,7 +544,15 @@ void loadInstruction(int &LC, int &i){
     else if (tokenList[i].value == PC_REL_ADR){  // %
         i++;  // get register
         registerName = tokenList[i].name;
-        registerNumber = stoi(registerName.substr(1));  // regB
+        if (tokenList[i].value == SP_REG){
+            registerNumber = 14;  // sp = regB
+        }
+        // else if (tokenList[i].value == PC_REG){
+        //     registerNumber = 15;  // pc
+        // }
+        else {
+            registerNumber = stoi(registerName.substr(1));  // regB
+        }
 
         machineCodeWord = 0x91000000;
         machineCodeWord |= (registerNumber << 16);  // regB
@@ -493,8 +561,14 @@ void loadInstruction(int &LC, int &i){
         i++; // get ,
         i++; // get %
         i++; // get register
-        registerName = tokenList[i].name;
-        registerNumber = stoi(registerName.substr(1));  // regA
+        if (tokenList[i].value == SP_REG){
+            registerNumber = 14;  // sp = regA
+        }
+        else {
+            registerName = tokenList[i].name;
+            registerNumber = stoi(registerName.substr(1));  // regA
+        }
+
         machineCodeWord |= (registerNumber << 20);  // regA
 
         // write machine code word to the current section
@@ -503,22 +577,37 @@ void loadInstruction(int &LC, int &i){
         
         LC += 4;
     }
-    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_IND_ADR){
         machineCodeWord = 0x92000000;
+        
+        if (tokenList[i].value == SP_REG_IND_ADR){
+            registerNumber = 14;  // sp = regB
+        }
+        else {
+            // We'll get register name from [%ri] by removing [% and ]
+            registerName = tokenList[i].name.substr(2, tokenList[i].name.size() - 3);
+            if (registerName == "sp"){
+                registerNumber = 14;  // sp = regB
+            }
+            else {
+                registerNumber = stoi(registerName.substr(1));  // remove r from the register name
+            }
+        }
 
-        // We'll get register name from [%ri] by removing [% and ]
-        registerName = tokenList[i].name.substr(2, tokenList[i].name.size() - 3);
-
-        // Remove r from the register name and convert it to int
-        registerNumber = stoi(registerName.substr(1));  // regB
         machineCodeWord |= (registerNumber << 16);  // regB
 
         // Finish up the instruction
         i++; // get ,
         i++; // get %
         i++; // get register
-        registerName = tokenList[i].name;
-        registerNumber = stoi(registerName.substr(1));  // regA
+        if (tokenList[i].value == SP_REG){
+            registerNumber = 14;  // sp = regA
+        }
+        else {
+            registerName = tokenList[i].name;
+            registerNumber = stoi(registerName.substr(1));  // regA
+        }
+
         machineCodeWord |= (registerNumber << 20);  // regA
 
         // write machine code word to the current section
@@ -528,7 +617,8 @@ void loadInstruction(int &LC, int &i){
         LC += 4;
     }
     else if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT ||
-     tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT){
+     tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT ||
+      tokenList[i].value == SP_REG_POM_L_ADR || tokenList[i].value == SP_REG_POM_HEXL_ADR){
         // operand is [%ri + D]
         // first we need to extract i and D
         string operand = tokenList[i].name;
@@ -538,14 +628,20 @@ void loadInstruction(int &LC, int &i){
 
         if (percentPos != std::string::npos && plusPos != std::string::npos && closingBracketPos != std::string::npos) {
             // Extract the substring between '%' and '+', and between '+' and ']'
-            std::string iStr = operand.substr(percentPos + 1, plusPos - percentPos - 1); // ri -> we'll remove the r before int conversion
             std::string DStr = operand.substr(plusPos + 1, closingBracketPos - plusPos - 1);  // " D" -> we'll remove the space before int conversion
 
-            // Convert the extracted substrings to integers
-            registerNumber = std::stoi(iStr.substr(1));
+            if (tokenList[i].value == SP_REG_POM_L_ADR || tokenList[i].value == SP_REG_POM_HEXL_ADR){
+                registerNumber = 14;  // sp = regB
+            }
+            else {
+                std::string iStr = operand.substr(percentPos + 1, plusPos - percentPos - 1); // ri -> we'll remove the r before int conversion
+                registerName = iStr;
+                registerNumber = stoi(registerName.substr(1));  // regB
+            }
+
             std::cout << "REGISTER NUMBER: " << registerNumber << std::endl;
             int D;
-            if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT){
+            if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_L_ADR){
                 D = std::stoi(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
                 std::cout << "D: " << D << std::endl;
             }
@@ -562,8 +658,14 @@ void loadInstruction(int &LC, int &i){
             i++; // get ,
             i++; // get %
             i++; // get register
-            registerName = tokenList[i].name;
-            registerNumber = stoi(registerName.substr(1));  // regA
+            if (tokenList[i].value == SP_REG){
+                registerNumber = 14;  // sp = regA
+            }
+            else {
+                registerName = tokenList[i].name;
+                registerNumber = stoi(registerName.substr(1));  // regA
+            }
+
             machineCodeWord |= (registerNumber << 20);  // regA
 
             // write machine code word to the current section
@@ -577,7 +679,7 @@ void loadInstruction(int &LC, int &i){
             exit(EXIT_FAILURE);
         }
     }
-    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_S_ADR){
         cout << "ERROR: Invalid operand, the value of the symbol is not known during asembling, so ld " << tokenList[i].name << " cannot be done." << endl;
         exit(EXIT_FAILURE);
     }
@@ -587,7 +689,15 @@ void loadInstruction(int &LC, int &i){
 void storeInstruction(int &LC, int &i){
     i++; // get %
     i++; // get register
-    int reg1 = stoi(tokenList[i].name.substr(1));  // regC
+    if (tokenList[i].value == SP_REG){
+        registerNumber = 14;  // sp = regC
+    }
+    else {
+        registerName = tokenList[i].name;
+        registerNumber = stoi(registerName.substr(1));  // regC
+    }
+
+    int reg1 = registerNumber;  // regC
 
     i++; // get ,
     i++; // get operand
@@ -596,15 +706,15 @@ void storeInstruction(int &LC, int &i){
     int index;
 
     if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
-        
-        if (tokenList[i].value == DEC_LITERAL){
-            value = stoi(tokenList[i].name);
-        }
-        else if (tokenList[i].value == HEX_LITERAL){
-            value = hexToInt(tokenList[i].name);
-        }
-        
+                
         if (canFitIn12Bits(tokenList[i].name, i)){
+            if (tokenList[i].value == DEC_LITERAL){
+                value = stoul(tokenList[i].name);
+            }
+            else if (tokenList[i].value == HEX_LITERAL){
+                value = hexToInt(tokenList[i].name);
+            }
+
             // OC = 0x8, M = 0x0, A = 0, B = 0, C = regNum, D = value
             machineCodeWord = 0x80000000;
             machineCodeWord |= (reg1 << 12);  // regC
@@ -617,7 +727,7 @@ void storeInstruction(int &LC, int &i){
             machineCodeWord |= (registerNumber << 20);  // regA
             machineCodeWord |= (reg1 << 12);  // regC
 
-            literalLocation = findLiteralLocation(value);  // it will exist, because we set it in the first pass
+            literalLocation = findLiteralLocation(tokenList[i].name);  // it will exist, because we set it in the first pass
             machineCodeWord |= (literalLocation - LC);
         }
 
@@ -644,7 +754,7 @@ void storeInstruction(int &LC, int &i){
             newLocation = tempSymbolSecondPass->literals[tempSymbolSecondPass->literals.size() - 1]->location + 4;
         }
 
-        tempSymbolSecondPass->literals.push_back(new Literal(0, newLocation, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
+        tempSymbolSecondPass->literals.push_back(new Literal("0x0", newLocation, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
         std::cout << "LC LITERALA JE: " << LC << std::endl;
 
         // Create a relocation entry
@@ -663,13 +773,24 @@ void storeInstruction(int &LC, int &i){
 
         LC += 4;
     }
-    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_IND_ADR){
         // operand == [%ri]
         machineCodeWord = 0x80000000;
 
-        // We'll get register name from [%ri] by removing [% and ]
-        registerName = tokenList[i].name.substr(2, tokenList[i].name.size() - 3);
-        registerNumber = stoi(registerName.substr(1));
+        if (tokenList[i].value == SP_REG_IND_ADR){
+            registerNumber = 14;  // sp = regB
+        }
+        else {
+            // We'll get register name from [%ri] by removing [% and ]
+            registerName = tokenList[i].name.substr(2, tokenList[i].name.size() - 3);
+            if (registerName == "sp"){
+                registerNumber = 14;  // sp = regB
+            }
+            else {
+                registerNumber = stoi(registerName.substr(1));  // remove r from the register name
+            }
+
+        }
 
         machineCodeWord |= (registerNumber << 20);  // regA
         machineCodeWord |= (reg1 << 12);  // regC
@@ -681,7 +802,8 @@ void storeInstruction(int &LC, int &i){
         LC += 4;
     }
     else if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT ||
-    tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT){
+    tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT ||
+     tokenList[i].value == SP_REG_POM_L_ADR || tokenList[i].value == SP_REG_POM_HEXL_ADR){
 
         // operand is [%ri + D]
         machineCodeWord = 0x80000000;
@@ -694,13 +816,19 @@ void storeInstruction(int &LC, int &i){
 
         if (percentPos != std::string::npos && plusPos != std::string::npos && closingBracketPos != std::string::npos) {
             // Extract the substring between '%' and '+', and between '+' and ']'
-            std::string iStr = operand.substr(percentPos + 1, plusPos - percentPos - 1);  // "ri"  -> we'll remove the r before int conversion
             std::string DStr = operand.substr(plusPos + 1, closingBracketPos - plusPos - 1); // " D" -> we'll remove the space before int conversion
 
-            // Convert the extracted substrings to integers
-            registerNumber = std::stoi(iStr.substr(1));  // regA
+            if (tokenList[i].value == SP_REG_POM_L_ADR || tokenList[i].value == SP_REG_POM_HEXL_ADR){
+                registerNumber = 14;  // sp = regB
+            }
+            else {
+                std::string iStr = operand.substr(percentPos + 1, plusPos - percentPos - 1);  // "ri"  -> we'll remove the r before int conversion
+                registerName = iStr;
+                registerNumber = stoi(registerName.substr(1));  // regB
+            }
+
             int D;
-            if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT){
+            if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_L_ADR){
                 D = std::stoi(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
             }
             else {
@@ -722,7 +850,7 @@ void storeInstruction(int &LC, int &i){
             exit(EXIT_FAILURE);
         }
     }
-    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_S_ADR){
         cout << "ERROR: Invalid operand, the value of the symbol is not known during asembling, so st " << tokenList[i].name << " cannot be done." << endl;
         exit(EXIT_FAILURE);
         // TODO: Check, maybe we can do this, it doesn't make sense not to have it for either ld or st
@@ -750,7 +878,7 @@ int secondPass(){
                 numOfBytes = 0;
                 i++; // get the number of bytes
                 if (tokenList[i].value == DEC_LITERAL){
-                    numOfBytes = stoi(tokenList[i].name);
+                    numOfBytes = stoul(tokenList[i].name);
                 }
                 else if (tokenList[i].value == HEX_LITERAL){
                     numOfBytes = hexToInt(tokenList[i].name);
@@ -781,7 +909,7 @@ int secondPass(){
                     value = 0;
                     i++;
                     if (tokenList[i].value == DEC_LITERAL){
-                        value = stoi(tokenList[i].name);
+                        value = stoul(tokenList[i].name);
                     }
                     else if (tokenList[i].value == HEX_LITERAL){
                         value = hexToInt(tokenList[i].name);
@@ -904,8 +1032,13 @@ int secondPass(){
                 machineCodeWord = 0x81e00000;
                 i++; // get %
                 i++; // get register
-                registerName = tokenList[i].name;
-                registerNumber = stoi(registerName.substr(1));
+                if (tokenList[i].value == SP_REG){
+                    registerNumber = 14;  // sp
+                }
+                else {
+                    registerName = tokenList[i].name;
+                    registerNumber = stoi(registerName.substr(1));
+                }
 
                 // shift register number to the 4th byte (from the right) of the machine code word
                 machineCodeWord |= (registerNumber << 12);
@@ -924,8 +1057,13 @@ int secondPass(){
                 machineCodeWord = 0x93000000;
                 i++; // get %
                 i++; // get register
-                registerName = tokenList[i].name;
-                registerNumber = stoi(registerName.substr(1));
+                if (tokenList[i].value == SP_REG){
+                    registerNumber = 14;  // sp
+                }
+                else {
+                    registerName = tokenList[i].name;
+                    registerNumber = stoi(registerName.substr(1));
+                }
 
                 // shift register number to the 6th byte (from the right) of the machine code word
                 machineCodeWord |= (registerNumber << 20);
@@ -948,16 +1086,27 @@ int secondPass(){
                 machineCodeWord = 0x40000000;
                 i++; // get %
                 i++; // get register
-                registerName = tokenList[i].name;
-                // remove "r" (first letter) from register name
-                registerNumber = stoi(registerName.substr(1));
+                if (tokenList[i].value == SP_REG){
+                    registerNumber = 14;  // sp
+                }
+                else {
+                    registerName = tokenList[i].name;
+                    registerNumber = stoi(registerName.substr(1));  // remove r from the register name
+                }
+                
                 machineCodeWord |= (registerNumber << 12);  // gprS
                 
                 i++; // get ,
                 i++; // get %
                 i++; // get register
-                registerName = tokenList[i].name;
-                registerNumber = stoi(registerName.substr(1));
+                if (tokenList[i].value == SP_REG){
+                    registerNumber = 14;  // sp
+                }
+                else {
+                    registerName = tokenList[i].name;
+                    registerNumber = stoi(registerName.substr(1));  // remove r from the register name
+                }
+
                 machineCodeWord |= (registerNumber << 16);  // gprD
                 
                 // write machine code word to the current section
@@ -987,8 +1136,14 @@ int secondPass(){
                 machineCodeWord = 0x60000000;
                 i++; // get %
                 i++; // get register
-                registerName = tokenList[i].name;
-                registerNumber = stoi(registerName.substr(1));
+                if (tokenList[i].value == SP_REG){
+                    registerNumber = 14;  // sp
+                }
+                else {
+                    registerName = tokenList[i].name;
+                    registerNumber = stoi(registerName.substr(1));  // remove r from the register name
+                }
+
                 // shift register number to the 4th and 5th byte (from the right) of the machine code word
                 machineCodeWord |= (registerNumber << 16);
                 machineCodeWord |= (registerNumber << 20);
@@ -1041,8 +1196,7 @@ int secondPass(){
 
             case CSRRD:
                 machineCodeWord = 0x90000000;
-                i++; // get %
-                i++; // get special register
+                i++; // get %special_register
                 if (tokenList[i].value == STATUS_REG){
                     registerNumber = 0;
                 }
@@ -1058,8 +1212,14 @@ int secondPass(){
                 i++; // get ,
                 i++; // get %
                 i++; // get register
-                registerName = tokenList[i].name;
-                registerNumber = stoi(registerName.substr(1));
+                if (tokenList[i].value == SP_REG){
+                    registerNumber = 14;  // sp
+                }
+                else {
+                    registerName = tokenList[i].name;
+                    registerNumber = stoi(registerName.substr(1));  // remove r from the register name
+                }
+
                 // shift register number to the 6th (from the right) of the machine code word
                 machineCodeWord |= (registerNumber << 20);
 
@@ -1073,14 +1233,19 @@ int secondPass(){
                 machineCodeWord = 0x94000000;
                 i++; // get %
                 i++; // get register
-                registerName = tokenList[i].name;
-                registerNumber = stoi(registerName.substr(1));
+                if (tokenList[i].value == SP_REG){
+                    registerNumber = 14;  // sp
+                }
+                else {
+                    registerName = tokenList[i].name;
+                    registerNumber = stoi(registerName.substr(1));  // remove r from the register name
+                }
+
                 // shift register number to the 5th (from the right) of the machine code word
                 machineCodeWord |= (registerNumber << 16);
 
                 i++; // get ,
-                i++; // get %
-                i++; // get special register
+                i++; // get %special_register
                 if (tokenList[i].value == STATUS_REG){
                     registerNumber = 0;
                 }

@@ -1,6 +1,6 @@
 #include "../inc/literal.h"
 
-Literal::Literal(int value, int location, int size, int index, int symbolIndex){
+Literal::Literal(std::string value, int location, int size, int index, int symbolIndex){
     this->value = value;
     this->location = location;
     this->size = size;

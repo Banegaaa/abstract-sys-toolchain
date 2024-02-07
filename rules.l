@@ -14,18 +14,25 @@
 "pc"                                return PC_REG;
 "psw"                               return PSW_REG;
 
-"status"                            return STATUS_REG;
-"handler"                           return HANDLER_REG;
-"cause"                             return CAUSE_REG;
+"%status"                            return STATUS_REG;
+"%handler"                           return HANDLER_REG;
+"%cause"                             return CAUSE_REG;
 
 "[%r"[0-9]"]"                   return REG_IND_ADR_SINGLE_DIGIT;
 "[%r"1[0-5]"]"                  return REG_IND_ADR_DOUBLE_DIGIT;
+"[%sp]"                         return SP_REG_IND_ADR;
+
 "[%r"[0-9]" + "[a-zA-Z_][a-zA-Z_0-9]*"]"        return REG_POM_S_ADR_SINGLE_DIGIT;
 "[%r"1[0-5]" + "[a-zA-Z_][a-zA-Z_0-9]*"]"        return REG_POM_S_ADR_DOUBLE_DIGIT;
+"[%sp + "[a-zA-Z_][a-zA-Z_0-9]*"]"          return SP_REG_POM_S_ADR;
+
 "[%r"[0-9]" + "[0-9]+"]"             return REG_POM_L_ADR_SINGLE_DIGIT;
 "[%r"1[0-5]" + "[0-9]+"]"             return REG_POM_L_ADR_DOUBLE_DIGIT;
+"[%sp + "[0-9]+"]"                   return SP_REG_POM_L_ADR;
+
 "[%r"[0-9]" + "[x0-xf]+"]"      return REG_POM_HEXL_ADR_SINGLE_DIGIT;
 "[%r"1[0-5]" + "[x0-xf]+"]"      return REG_POM_HEXL_ADR_DOUBLE_DIGIT;
+"[%sp + "[x0-xf]+"]"            return SP_REG_POM_HEXL_ADR;
 
 
  

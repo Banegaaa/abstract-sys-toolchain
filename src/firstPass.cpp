@@ -24,10 +24,10 @@ Symbol* tempSymbol;
 
 
 
-int hexToInt(std::string s)
+long int hexToInt(std::string s)
 {
     std::string numPart = s.substr(2);
-    return std::stoi(numPart, 0, 16);
+    return std::stoul(numPart, 0, 16);
 }
 
 Symbol* symbolExists(string name){
@@ -51,11 +51,11 @@ int getSectionNumber(string name){
 
 bool canFitIn12Bits(string valueStr, int i){
     if (tokenList[i].value == DEC_LITERAL){
-        int value = stoi(valueStr);
+        long int value = stoul(valueStr);
         return value <= 2047;
     }
     else if (tokenList[i].value == HEX_LITERAL){
-        int value = hexToInt(valueStr);
+        long int value = hexToInt(valueStr);
         return value <= 2047;
     }
     else{
@@ -64,7 +64,7 @@ bool canFitIn12Bits(string valueStr, int i){
     }
 }
 
-bool literalExists(int value, string currentSection){
+bool literalExists(string value, string currentSection){
     for (int i = 0; i < symbolTable.size(); i++){
         if (symbolTable[i].name == currentSection){
             for (int j = 0; j < symbolTable[i].literals.size(); j++){
@@ -92,13 +92,13 @@ void jmpAndCallCase(int &LC, int &i){
             if (tokenList[i].value == DEC_LITERAL){
                 if (!canFitIn12Bits(tokenList[i].name, i)){
                     tempSymbol = symbolExists(currentSection);
-                    tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), 0, 4, tempSymbol->literals.size(), -1));  // location is 0, because we will set it later
+                    tempSymbol->addLiteral(new Literal(tokenList[i].name, 0, 4, tempSymbol->literals.size(), -1));  // location is 0, because we will set it later
                 }
             }
             else if (tokenList[i].value == HEX_LITERAL){
                 if (!canFitIn12Bits(tokenList[i].name, i)){
                     tempSymbol = symbolExists(currentSection);
-                    tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), 0, 4, tempSymbol->literals.size(), -1));
+                    tempSymbol->addLiteral(new Literal(tokenList[i].name, 0, 4, tempSymbol->literals.size(), -1));
                 }
             }
         }
@@ -141,13 +141,13 @@ void jumpInstructions(int &LC, int &i){
         if (tokenList[i].value == DEC_LITERAL){
             tempSymbol = symbolExists(currentSection);
             if (!canFitIn12Bits(tokenList[i].name, i)){
-                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), 0, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(tokenList[i].name, 0, 4, tempSymbol->literals.size(), -1));
             }
         }
         else if (tokenList[i].value == HEX_LITERAL){
             tempSymbol = symbolExists(currentSection);
             if (!canFitIn12Bits(tokenList[i].name, i)){
-                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), 0, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(tokenList[i].name, 0, 4, tempSymbol->literals.size(), -1));
             }
         }
     }
@@ -159,18 +159,20 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
 
     if (tokenList[i].value == IMM_ADR){
         i++; // get literal || hex_literal || name
+        std::cout << "IMMEDIATE ADDRESSING: " << tokenList[i].name << endl;
         int value = 0;
         if (tokenList[i].value == DEC_LITERAL || tokenList[i].value == HEX_LITERAL){
             // OPERAND == $literal || $hex_literal
+            if (!canFitIn12Bits(tokenList[i].name, i)){
+                tempSymbol = symbolExists(currentSection);
+                tempSymbol->addLiteral(new Literal(tokenList[i].name, 0, 4, tempSymbol->literals.size(), -1));
+            }
+
             if (tokenList[i].value == DEC_LITERAL){
                 value = stoi(tokenList[i].name);
             }
             else {  // HEX_LITERAL
                 value = hexToInt(tokenList[i].name);
-            }
-            if (!canFitIn12Bits(tokenList[i].name, i)){
-                tempSymbol = symbolExists(currentSection);
-                tempSymbol->addLiteral(new Literal(value, 0, sizeof(value), tempSymbol->literals.size(), -1));
             }
         }
         else {
@@ -190,16 +192,9 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         // Here, we will always create a literal, no matter if it can fit in 12 bits or not
         // We will code this with 2 instructions -> LC += 8
 
-        int value = 0;
-        if (tokenList[i].value == DEC_LITERAL){
-            value = stoi(tokenList[i].name);
-        }
-        else { // HEX_LITERAL
-            value = hexToInt(tokenList[i].name);
-        }
-        if (!literalExists(value, currentSection)){
+        if (!literalExists(tokenList[i].name, currentSection)){
             tempSymbol = symbolExists(currentSection);
-            tempSymbol->addLiteral(new Literal(value, 0, 4, tempSymbol->literals.size(), -1));
+            tempSymbol->addLiteral(new Literal(tokenList[i].name, 0, 4, tempSymbol->literals.size(), -1));
         }
         LC += 8;
     }
@@ -219,13 +214,13 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         // OPERAND == %register
 
         i++; // get register
-        if (tokenList[i].value != REG){
+        if (tokenList[i].value != REG && tokenList[i].value != SP_REG){
             std::cout << "Error: Invalid register" << endl;
             exit(EXIT_FAILURE);
         }
         LC += 4;
     }
-    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_IND_ADR){
         // OPERAND == [%register]
         LC += 4;
     }
@@ -267,7 +262,7 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         }
         LC += 4;
     }
-    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_S_ADR){
         // OPERAND == [%register + name]
         // extract the name, and see if the symbol exists, if it doesn't -> add it to the symbol table
         string delimiter = "+";
@@ -297,10 +292,10 @@ void storeOperand(int &LC, int i){
         if (!canFitIn12Bits(tokenList[i].name, i)){
             tempSymbol = symbolExists(currentSection);
             if (tokenList[i].value == DEC_LITERAL){
-                tempSymbol->addLiteral(new Literal(stoi(tokenList[i].name), 0, sizeof(stoi(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(tokenList[i].name, 0, 4, tempSymbol->literals.size(), -1));
             }
             else {  // HEX_LITERAL
-                tempSymbol->addLiteral(new Literal(hexToInt(tokenList[i].name), 0, sizeof(hexToInt(tokenList[i].name)), tempSymbol->literals.size(), -1));
+                tempSymbol->addLiteral(new Literal(tokenList[i].name, 0, 4, tempSymbol->literals.size(), -1));
             }
         }
         LC += 4;
@@ -314,11 +309,11 @@ void storeOperand(int &LC, int i){
         }
         LC += 4;
     }
-    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_IND_ADR_SINGLE_DIGIT || tokenList[i].value == REG_IND_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_IND_ADR){
         LC += 4;
     }
     else if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT || 
-    tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT){
+    tokenList[i].value == REG_POM_HEXL_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_HEXL_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_L_ADR){
         // OPERAND == [%register + dec_literal] || [%register + hex_literal]
 
         // extract the dec_literal, and see if it fits to 12b, if it doesn't -> error
@@ -344,7 +339,7 @@ void storeOperand(int &LC, int i){
 
         LC += 4;
     }
-    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT){
+    else if (tokenList[i].value == REG_POM_S_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_S_ADR_DOUBLE_DIGIT || tokenList[i].value == SP_REG_POM_S_ADR){
         // OPERAND == [%register + name]
         // extract the name, and see if the symbol exists, if it doesn't -> add it to the symbol table
         string delimiter = "+";
@@ -370,6 +365,8 @@ void storeOperand(int &LC, int i){
 
 int firstPass(){
     for (int i = 0; i < tokenList.size(); i++){
+
+        std::cout << "iteration: " << i << " token name: " << tokenList[i].name << endl;
     
         switch(tokenList[i].value){
 
@@ -409,9 +406,12 @@ int firstPass(){
                 break;
 
             case EXTERN:
+                std::cout << "Token name: " << tokenList[i].name << endl;
                 while (tokenList[i].value == EXTERN || tokenList[i].value == COMMA){
                     i++;
+                    std::cout << "Token name: " << tokenList[i].name << endl;
                     if (tokenList[i].value == NAME){
+
                         // check if symbol with that name already exists in the symbol table (TODO: MAYBE NOT NEEDED - IF WE HAVE EXTERN, WE KNOW IT DOESN'T EXIST)
                         tempSymbol = symbolExists(tokenList[i].name);
                         if (tempSymbol == nullptr){
@@ -654,8 +654,11 @@ int firstPass(){
                 i++; // get operand
                 loadOperand(tempInt, LC, i);  // This will set LC
                 i++; // get ,
+                std::cout << "SHOULD BE COMMA: " << tokenList[i].name << endl;
                 i++; // get %
+                std:: cout << "SHOULD BE %: " << tokenList[i].name << endl;
                 i++; // get register
+                std::cout << "SHOULD BE SP: " << tokenList[i].name << endl;
                 break;
 
             case ST:
@@ -668,8 +671,7 @@ int firstPass(){
                 break;
 
             case CSRRD:
-                i++; // get %
-                i++; // get one of the special registers
+                i++; // get %special_reg
                 if (tokenList[i].value != STATUS_REG && tokenList[i].value != HANDLER_REG && tokenList[i].value != CAUSE_REG){
                     std::cout << "Error: Invalid special register" << endl;
                     exit(EXIT_FAILURE);
@@ -684,8 +686,7 @@ int firstPass(){
                 i++; // get %
                 i++; // get register
                 i++; // get ,
-                i++; // get %
-                i++; // get one of the special registers
+                i++; // get %special_reg
                 if (tokenList[i].value != STATUS_REG && tokenList[i].value != HANDLER_REG && tokenList[i].value != CAUSE_REG){
                     std::cout << "Error: Invalid special register" << endl;
                     exit(EXIT_FAILURE);
@@ -717,6 +718,7 @@ int firstPass(){
                 return EXIT_SUCCESS;
             
             default:
+                std::cout << "Token name: " << tokenList[i].name << endl;
                 break;
         }
     }
