@@ -533,7 +533,7 @@ void Emulator::execute(){
             // TODO: Is this little endianess? Check if it's ok
             machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
 
-            this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+            this->gpr[15] = stoul(machineCodeWord, nullptr, 16);
         }
         else if (instructionCode.compare(JMP_L) == 0){
 
@@ -594,7 +594,7 @@ void Emulator::execute(){
 
             std::cout << "MACHINE CODE WORD: " << machineCodeWord << endl;
 
-            this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+            this->gpr[15] = stoul(machineCodeWord, nullptr, 16);
         }
         else if (instructionCode.compare(BEQ_L) == 0){
             
@@ -667,7 +667,7 @@ void Emulator::execute(){
             if (this->gpr[B] == this->gpr[C]){
                 // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
 
-                this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+                this->gpr[15] = stoul(machineCodeWord, nullptr, 16);
             }
             else {
                 // pc <= pc + 4;
@@ -745,7 +745,7 @@ void Emulator::execute(){
             if (this->gpr[B] != this->gpr[C]){
                 // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
 
-                this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+                this->gpr[15] = stoul(machineCodeWord, nullptr, 16);
             }
             else {
                 // pc <= pc + 4;
@@ -823,7 +823,7 @@ void Emulator::execute(){
             if (this->gpr[B] > this->gpr[C]){
                 // pc <= mem32[gpr[A] + D];    === pc <= D; A = F;
 
-                this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
+                this->gpr[15] = stoul(machineCodeWord, nullptr, 16);
             }
             else {
                 // pc <= pc + 4;
@@ -928,7 +928,7 @@ void Emulator::execute(){
 
             std::cout << "MACHINE CODE WORD: " << machineCodeWord << endl;
 
-            this->gpr[A] = stoi(machineCodeWord, nullptr, 16);
+            this->gpr[A] = stoul(machineCodeWord, nullptr, 16);
 
             this->gpr[15] += 4;
         }
@@ -952,7 +952,7 @@ void Emulator::execute(){
             // we get the value from the address that sp is pointing to
             machineCodeWord = this->getByteFromMemory(this->gpr[B] + 3) + this->getByteFromMemory(this->gpr[B] + 2) + this->getByteFromMemory(this->gpr[B] + 1) + this->getByteFromMemory(this->gpr[B]);
 
-            this->gpr[A] = stoi(machineCodeWord, nullptr, 16);
+            this->gpr[A] = stoul(machineCodeWord, nullptr, 16);
 
             // sp <= sp + 4;
 
@@ -980,7 +980,7 @@ void Emulator::execute(){
             // we get the value from the address that sp is pointing to
             machineCodeWord = this->getByteFromMemory(this->gpr[B] + 3) + this->getByteFromMemory(this->gpr[B] + 2) + this->getByteFromMemory(this->gpr[B] + 1) + this->getByteFromMemory(this->gpr[B]);
 
-            this->csr[A] = stoi(machineCodeWord, nullptr, 16);
+            this->csr[A] = stoul(machineCodeWord, nullptr, 16);
 
             // sp <= sp + 4;
 

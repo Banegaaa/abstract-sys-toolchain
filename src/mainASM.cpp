@@ -62,7 +62,7 @@ std::string convertToFourByteHex(const std::string& input) {
 
     // Format the result as a 4-byte hexadecimal number
     std::ostringstream oss;
-    oss << "0x" << std::setfill('0') << std::setw(8) << std::hex << num;
+    oss << std::setfill('0') << std::setw(8) << std::hex << num;
 
     return oss.str();
 }
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < symbolTable.size(); i++){
         if (symbolTable[i].is_section){
             for (int j = 0; j < symbolTable[i].literals.size(); j++){
-                outputFile << std::setw(5) << hex << symbolTable[i].literals[j]->value;                   // Value
+                outputFile << std::setw(5) << convertToFourByteHex(symbolTable[i].literals[j]->value);    // Value
                 outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->location;      // Location
                 outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->size;          // Size
                 outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->index;         // Index
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
             
             // now continue this with literals
             for (int j = 0; j < symbolTable[i].literals.size(); j++){
-                outputFile << std::setw(8) << std::setfill('0') << std::hex << convertToFourByteHex(symbolTable[i].literals[j]->value) << " ";
+                outputFile << convertToFourByteHex(symbolTable[i].literals[j]->value) << " ";
             }
 
             outputFile << endl;

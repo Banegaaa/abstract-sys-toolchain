@@ -4,14 +4,14 @@ using namespace std;
 
 class LiteralLD {
     public:
-    int value;
+    string value;
     int location;
     int size;
     int index;
     int symbolIndex;
     string sectionName;
 
-    LiteralLD(int value, int location, int size, int index, int symbolIndex, string sectionName){
+    LiteralLD(string value, int location, int size, int index, int symbolIndex, string sectionName){
         this->value = value;
         this->location = location;
         this->size = size;
