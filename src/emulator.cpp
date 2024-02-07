@@ -113,7 +113,7 @@ void Emulator::writeByteToMemory(unsigned address, string byte) {
         }
     }
     this->memory.push_back(make_pair(address, byte));  // new address
-    std::cout << "New address: " << hex << address << " with byte: " << byte << endl;
+    std::cout << "New address: " << hex << address << " with byte: " << hex << byte << endl;
 }
 
 
@@ -172,34 +172,48 @@ void Emulator::execute(){
 
             this->gpr[15] += 4;
 
-            byte = std::to_string(this->gpr[15] & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 1, byte);  // gpr[14] - 1 because sp is pointing to the last taken address
+            std::cout << "WE'RE PUSHING PC: " << hex << this->gpr[15] << endl;
 
-            byte = std::to_string((this->gpr[15] >> 8) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 2, byte);
+            intHexStrStringStream << hex << this->gpr[15];
+            regValueStr = intHexStrStringStream.str();
 
-            byte = std::to_string((this->gpr[15] >> 16) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 3, byte);
+            // if the regValueStr is less than 8 characters, we need to add leading zeros
+            if (regValueStr.length() < 8){
+                regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
+            }
 
-            byte = std::to_string((this->gpr[15] >> 24) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 4, byte);
+            this->writeByteToMemory(this->gpr[14] - 1, regValueStr.substr(6, 2));  // gpr[14] - 1 because sp is pointing to the last taken address
+
+            this->writeByteToMemory(this->gpr[14] - 2, regValueStr.substr(4, 2));
+
+            this->writeByteToMemory(this->gpr[14] - 3, regValueStr.substr(2, 2));
+
+            this->writeByteToMemory(this->gpr[14] - 4, regValueStr.substr(0, 2));
 
             this->gpr[14] = this->gpr[15];
 
 
             // push status
 
+            intHexStrStringStream << hex << this->csr[0];
+            regValueStr = intHexStrStringStream.str();
+
+            // if the regValueStr is less than 8 characters, we need to add leading zeros
+            if (regValueStr.length() < 8){
+                regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
+            }
+
             byte = std::to_string(this->csr[0] & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 1, byte);
+            this->writeByteToMemory(this->gpr[14] - 1, regValueStr.substr(6, 2));  // gpr[14] - 1 because sp is pointing to the last taken address
 
             byte = std::to_string((this->csr[0] >> 8) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 2, byte);
+            this->writeByteToMemory(this->gpr[14] - 2, regValueStr.substr(4, 2));
 
             byte = std::to_string((this->csr[0] >> 16) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 3, byte);
+            this->writeByteToMemory(this->gpr[14] - 3, regValueStr.substr(2, 2));
 
             byte = std::to_string((this->csr[0] >> 24) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 4, byte);
+            this->writeByteToMemory(this->gpr[14] - 4, regValueStr.substr(0, 2));
 
             this->gpr[14] -= 4;
 
@@ -211,6 +225,7 @@ void Emulator::execute(){
 
             // pc <= handle;
             this->gpr[15] = this->csr[1];
+
         }
         else if (instructionCode.compare(XCHG) == 0) {
 
