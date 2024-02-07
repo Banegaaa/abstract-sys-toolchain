@@ -389,8 +389,6 @@ void loadInstruction(int &LC, int &i){
             value = hexToInt(tokenList[i].name);
         }
 
-        std::cout << "VALUE: " << hex << value << std::endl;
-
         // 1. B = 15, C = 0, A = regNum  (gpr[A] <= mem32[pc + D])  //TODO: should this be gpr[A] <= PC + D?
 
         machineCodeWord = 0x92000000;
@@ -439,15 +437,25 @@ void loadInstruction(int &LC, int &i){
         // Add symbol value to the pool of literals
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
-        Literal* newLiteral = new Literal(0, LC, 4, index, symbolIndex);
+
+        // Calculate the location of the literal before adding it to the pool of literals
+        int newLocation;
+        if (tempSymbolSecondPass->literals.size() == 0){
+            newLocation = tempSymbolSecondPass->sectionSize;
+        }
+        else {
+            newLocation = tempSymbolSecondPass->literals[tempSymbolSecondPass->literals.size() - 1]->location + 4;
+        }
+
+        Literal* newLiteral = new Literal(0, newLocation, 4, index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
-        relSym = new RelocationSymbol(symbolIndex, LC, index);
+        relSym = new RelocationSymbol(symbolIndex, newLocation, index);
         tempSymbolSecondPass->relocationTable.push_back(relSym);
 
         // set index to the last 3 bytes of the literal
-        machineCodeWord |= index;
+        machineCodeWord |= (newLocation - LC);
 
         // Finish up the instruction
         i++; // get ,
@@ -500,7 +508,9 @@ void loadInstruction(int &LC, int &i){
 
         // We'll get register name from [%ri] by removing [% and ]
         registerName = tokenList[i].name.substr(2, tokenList[i].name.size() - 3);
-        registerNumber = stoi(registerName);
+
+        // Remove r from the register name and convert it to int
+        registerNumber = stoi(registerName.substr(1));  // regB
         machineCodeWord |= (registerNumber << 16);  // regB
 
         // Finish up the instruction
@@ -533,16 +543,19 @@ void loadInstruction(int &LC, int &i){
 
             // Convert the extracted substrings to integers
             registerNumber = std::stoi(iStr.substr(1));
+            std::cout << "REGISTER NUMBER: " << registerNumber << std::endl;
             int D;
             if (tokenList[i].value == REG_POM_L_ADR_SINGLE_DIGIT || tokenList[i].value == REG_POM_L_ADR_DOUBLE_DIGIT){
                 D = std::stoi(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
+                std::cout << "D: " << D << std::endl;
             }
             else {
                 D = hexToInt(DStr.substr(1));  // D (this literal will definately fit in 12 bits)
+                std::cout << "D: " << hex << D << std::endl;
             }
 
             machineCodeWord = 0x92000000;
-            machineCodeWord |= (i << 16);  // regB
+            machineCodeWord |= (registerNumber << 16);  // regB
             machineCodeWord |= D;  // D
 
             // Finish up the instruction
@@ -621,11 +634,21 @@ void storeInstruction(int &LC, int &i){
 
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
-        tempSymbolSecondPass->literals.push_back(new Literal(0, LC, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
+
+        // Calculate the location of the literal before adding it to the pool of literals
+        int newLocation;
+        if (tempSymbolSecondPass->literals.size() == 0){
+            newLocation = tempSymbolSecondPass->sectionSize;
+        }
+        else {
+            newLocation = tempSymbolSecondPass->literals[tempSymbolSecondPass->literals.size() - 1]->location + 4;
+        }
+
+        tempSymbolSecondPass->literals.push_back(new Literal(0, newLocation, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
         std::cout << "LC LITERALA JE: " << LC << std::endl;
 
         // Create a relocation entry
-        relSym = new RelocationSymbol(symbolIndex, LC, tempSymbolSecondPass->literals.size() - 1);
+        relSym = new RelocationSymbol(symbolIndex, newLocation, tempSymbolSecondPass->literals.size() - 1);
         tempSymbolSecondPass->relocationTable.push_back(relSym);
 
         // OC = 0x8, M = 0x2, A = 15 (pc), B = 0, C = regNum, D = index
@@ -633,7 +656,7 @@ void storeInstruction(int &LC, int &i){
         registerNumber = 15;  // pc
         machineCodeWord |= (registerNumber << 20);  // regA
         machineCodeWord |= (reg1 << 12);  // regC
-        machineCodeWord |= index;
+        machineCodeWord |= (newLocation - LC);  // the index of the last literal in the pool of literals
 
         // write machine code word to the current section
         tempSymbolSecondPass->set4BytesOfMachineCode(LC, machineCodeWord);
