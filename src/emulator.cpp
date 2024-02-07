@@ -113,6 +113,7 @@ void Emulator::writeByteToMemory(unsigned address, string byte) {
         }
     }
     this->memory.push_back(make_pair(address, byte));  // new address
+    std::cout << "New address: " << hex << address << " with byte: " << byte << endl;
 }
 
 
@@ -134,6 +135,9 @@ void Emulator::execute(){
     bool halt = false;
     string byte;
     string machineCodeWord;
+    stringstream intHexStrStringStream;        // for converting int to hex to string
+    string regValueStr;                       // for placing string from intHexStrStringStream
+
 
     // for (int i = 0; i < this->memory.size(); i++) {
     //     cout << hex << this->memory[i].first << ": " << this->memory[i].second << endl;
@@ -142,7 +146,7 @@ void Emulator::execute(){
     while (!halt) {
 
         string instructionCode = this->getByteFromMemory(this->gpr[15]);
-        // std::cout << "Instruction code: " << instructionCode << endl;
+        std::cout << "Instruction code: " << instructionCode << endl;
 
         if (instructionCode.compare(HALT) == 0) {
             // HALT
@@ -529,7 +533,6 @@ void Emulator::execute(){
             // TODO: Is this little endianess? Check if it's ok
             machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
 
-
             this->gpr[15] = stoi(machineCodeWord, nullptr, 16);
         }
         else if (instructionCode.compare(JMP_L) == 0){
@@ -903,8 +906,11 @@ void Emulator::execute(){
             std::cout << "LD_2" << endl;
 
             int A = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(0, 1), nullptr, 16);
+            std::cout << "A: " << A << endl;
             int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            std::cout << "B: " << B << endl;
             int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+            std::cout << "C: " << C << endl;
 
             string stdDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
             stdDisp = stdDisp.substr(1);                                      // take only the lower half-byte
@@ -912,9 +918,15 @@ void Emulator::execute(){
 
             int Disp = stoi(stdDisp, nullptr, 16);
 
+            std::cout << "DISPLACEMENT: " << Disp << endl;
+
             int address = this->gpr[B] + this->gpr[C] + Disp;
 
+            std::cout << "ADDRESS: " << hex << address << endl;
+
             machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
+
+            std::cout << "MACHINE CODE WORD: " << machineCodeWord << endl;
 
             this->gpr[A] = stoi(machineCodeWord, nullptr, 16);
 
@@ -986,8 +998,11 @@ void Emulator::execute(){
             std::cout << "ST_1" << endl;
 
             int A = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(0, 1), nullptr, 16);
+            std::cout << "A: " << A << endl;
             int B = stoi(this->getByteFromMemory(this->gpr[15] + 1).substr(1), nullptr, 16);
+            std::cout << "B: " << B << endl;
             int C = stoi(this->getByteFromMemory(this->gpr[15] + 2).substr(0, 1), nullptr, 16);
+            std::cout << "C: " << C << endl;
 
             string stdDisp = this->getByteFromMemory(this->gpr[15] + 2);      // get the byte
             stdDisp = stdDisp.substr(1);                                      // take only the lower half-byte
@@ -995,12 +1010,29 @@ void Emulator::execute(){
 
             int Disp = stoi(stdDisp, nullptr, 16);
 
+            std::cout << "DISPLACEMENT: " << Disp << endl;
+
             int address = this->gpr[A] + this->gpr[B] + Disp;  // Address from which we set gpr[C]
 
-            this->writeByteToMemory(address, std::to_string(this->gpr[C] & 0xFF));
-            this->writeByteToMemory(address + 1, std::to_string((this->gpr[C] >> 8) & 0xFF));
-            this->writeByteToMemory(address + 2, std::to_string((this->gpr[C] >> 16) & 0xFF));
-            this->writeByteToMemory(address + 3, std::to_string((this->gpr[C] >> 24) & 0xFF));
+            std::cout << "ADDRESS: " << hex << address << endl;
+
+            // TODO: Still storing like it's little endian.. We will change it for now, but we need to check if it's ok
+            // this->writeByteToMemory(address, std::to_string(this->gpr[C] & 0xFF));
+            // this->writeByteToMemory(address + 1, std::to_string((this->gpr[C] >> 8) & 0xFF));
+            // this->writeByteToMemory(address + 2, std::to_string((this->gpr[C] >> 16) & 0xFF));
+            // this->writeByteToMemory(address + 3, std::to_string((this->gpr[C] >> 24) & 0xFF));
+
+            intHexStrStringStream << hex << this->gpr[C];
+            regValueStr = intHexStrStringStream.str();
+            // if the regValueStr is less than 8 characters, we need to add leading zeros
+            if (regValueStr.length() < 8){
+                regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
+            }
+
+            this->writeByteToMemory(address, regValueStr.substr(0, 2));
+            this->writeByteToMemory(address + 1, regValueStr.substr(2, 2));
+            this->writeByteToMemory(address + 2, regValueStr.substr(4, 2));
+            this->writeByteToMemory(address + 3, regValueStr.substr(6, 2));
 
             this->gpr[15] += 4;
         }
@@ -1028,10 +1060,20 @@ void Emulator::execute(){
             
             int address2 = stoi(strAddress2, nullptr, 16);
 
-            this->writeByteToMemory(address2, std::to_string(this->gpr[C] & 0xFF));
-            this->writeByteToMemory(address2 + 1, std::to_string((this->gpr[C] >> 8) & 0xFF));
-            this->writeByteToMemory(address2 + 2, std::to_string((this->gpr[C] >> 16) & 0xFF));
-            this->writeByteToMemory(address2 + 3, std::to_string((this->gpr[C] >> 24) & 0xFF));
+            intHexStrStringStream << hex << this->gpr[C];
+            regValueStr = intHexStrStringStream.str();
+
+            // if the regValueStr is less than 8 characters, we need to add leading zeros
+            if (regValueStr.length() < 8){
+                regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
+            }
+
+            std::cout << "VREDNOST REGISTRA JE: 0x" << regValueStr << endl;
+
+            this->writeByteToMemory(address2, regValueStr.substr(0, 2));
+            this->writeByteToMemory(address2 + 1, regValueStr.substr(2, 2));
+            this->writeByteToMemory(address2 + 2, regValueStr.substr(4, 2));
+            this->writeByteToMemory(address2 + 3, regValueStr.substr(6, 2));
 
             this->gpr[15] += 4;
         }
