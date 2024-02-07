@@ -166,8 +166,39 @@ void Linker::sectionPlacing(){
                             existsFromAnotherParser = true;
 
                             // IF IT EXISTS, WE WILL ADD IT EMEDIATELY AFTER THE LAST ADDED SECTION 
-                            this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, it->second.second + it->second.first->sectionSize)));
-                            break;
+                            // But first, we need to check if we already did that, that is, maybe we already added it from another parser after this one
+                            // We need to check if the next section is also the same name
+                            // if it is -> we add it after the last added section with this name
+                            // if it isn't -> we add it emediately after this one
+
+                            std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator nextIt = it;
+                            nextIt++;
+
+                            if (nextIt != sections.end() && nextIt->second.first->name.compare(sectionSymbol->name) == 0){
+                                // The next section is also the same name
+                                // We need to add it after the last added section with the same name
+                                // We need to find the last added section with the same name
+
+                                std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator lastIt = it;
+
+                                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator it2 = it; it2 != sections.end(); ++it2){
+                                    if (it2->second.first->name.compare(sectionSymbol->name) == 0){
+                                        lastIt = it2;
+                                    }
+                                    else {
+                                        break;
+                                    }
+                                }
+
+                                this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, lastIt->second.second + lastIt->second.first->sectionSize)));
+                                break;
+                            }
+                            else {
+                                // The next section is not the same name
+                                // We need to add it emediately after this one
+                                this->sections.push_back(make_pair(this->parsers[i]->inputFileName, make_pair(sectionSymbol, it->second.second + it->second.first->sectionSize)));
+                                break;
+                            }
                         }
                     }
 
@@ -207,6 +238,7 @@ void Linker::sectionPlacing(){
         // Print in the specified format
         std::cout << "File: " << fileName << ", Section: " << symbolPointer->name << " ---> Address: " << hex << address << std::endl;
     }
+
 
 }
 
@@ -731,6 +763,10 @@ void Linker::processRelocations(){
             SymbolLD* symbol = this->getGlobalSymbolByName(symbolName);
             hexStream << std::hex << symbol->value;
             symbolValueString = hexStream.str();
+            std::cout << "Vrednost simbola: " << symbolValueString << endl;
+
+            // clear the stringstream
+            hexStream.str(std::string());
 
             // Now go through machineCodeWithAddresses vector and write 4B of symbol value starting from addressForFixing
             // TODO: Check if the value is right! (It should be, we should've fixed it in the fixAddresses function)
