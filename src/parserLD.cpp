@@ -114,7 +114,7 @@ void ParserLD::parseLiteralTable(vector<string> tokens){
         exit(EXIT_FAILURE);
     }
 
-    int value = stoi(tokens[0], nullptr, 16);
+    string value = tokens[0];  // Value is in hex
 
     int location = hexToIntNo0x(tokens[1]);
 

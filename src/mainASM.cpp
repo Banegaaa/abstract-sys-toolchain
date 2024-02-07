@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
         else
             outputFile << std::internal << std::setw(3) << symbolTable[i].section;
         
-        outputFile << std::internal << std::setw(3) << (int)symbolTable[i].lc_value;   // LC value
+        outputFile << std::internal << std::setw(5) << (int)symbolTable[i].lc_value;   // LC value
         
         if (symbolTable[i].is_section)                                              // Size
             outputFile << std::internal << std::setw(5) << symbolTable[i].sectionSize;
