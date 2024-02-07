@@ -131,9 +131,9 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < symbolTable.size(); i++){
 
-        outputFile << std::setw(5) << symbolTable[i].number;       // ID
+        outputFile << std::setw(5) << hex << symbolTable[i].number;       // ID
         outputFile << std::internal << std::setw(20) << symbolTable[i].name;       // Name
-        outputFile << std::internal << std::setw(15) << symbolTable[i].value;      // Value
+        outputFile << std::internal << std::setw(8) << hex << symbolTable[i].value;      // Value
         
         if (symbolTable[i].is_defined)                                             // Defined
             outputFile << std::internal << std::setw(6) << "DEF";
@@ -153,12 +153,12 @@ int main(int argc, char *argv[])
         if (symbolTable[i].section == -1)                                           // Section number
             outputFile << std::internal << std::setw(3) << "-";
         else
-            outputFile << std::internal << std::setw(3) << symbolTable[i].section;
+            outputFile << std::internal << hex << std::setw(3) << symbolTable[i].section;
         
-        outputFile << std::internal << std::setw(5) << (int)symbolTable[i].lc_value;   // LC value
+        outputFile << std::internal << std::setw(5) << hex << (int)symbolTable[i].lc_value;   // LC value
         
         if (symbolTable[i].is_section)                                              // Size
-            outputFile << std::internal << std::setw(5) << symbolTable[i].sectionSize;
+            outputFile << std::internal << std::setw(5) << hex << symbolTable[i].sectionSize;
         else
             outputFile << std::internal << std::setw(5) << "-";
         
@@ -171,15 +171,15 @@ int main(int argc, char *argv[])
     for (int i = 0; i < symbolTable.size(); i++){
         if (symbolTable[i].is_section){
             for (int j = 0; j < symbolTable[i].literals.size(); j++){
-                outputFile << std::setw(5) << convertToFourByteHex(symbolTable[i].literals[j]->value);    // Value
-                outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->location;      // Location
-                outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->size;          // Size
-                outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->index;         // Index
-                if (symbolTable[i].literals[j]->symbolIndex != -1)                                        // Symbol index
-                    outputFile << std::internal << std::setw(4) << symbolTable[i].literals[j]->symbolIndex;
+                outputFile << std::setw(5) << convertToFourByteHex(symbolTable[i].literals[j]->value);         // Value
+                outputFile << std::internal << std::setw(4) << hex << symbolTable[i].literals[j]->location;    // Location
+                outputFile << std::internal << std::setw(4) << hex << symbolTable[i].literals[j]->size;               // Size
+                outputFile << std::internal << std::setw(4) << hex << symbolTable[i].literals[j]->index;              // Index
+                if (symbolTable[i].literals[j]->symbolIndex != -1)                                             // Symbol index
+                    outputFile << std::internal << std::setw(4) << hex << symbolTable[i].literals[j]->symbolIndex;
                 else
                     outputFile << std::internal << std::setw(4) << "-";
-                outputFile << std::internal << std::setw(20) << symbolTable[i].name << endl;              // Section name
+                outputFile << std::internal << std::setw(20) << symbolTable[i].name << endl;                   // Section name
             }
         }
     }
@@ -190,15 +190,16 @@ int main(int argc, char *argv[])
         if (symbolTable[i].is_section){
             for (int j = 0; j < symbolTable[i].relocationTable.size(); j++){
                 if (symbolTable[i].relocationTable[j]->symbolIndex != -1)                                         // Symbol index
-                    outputFile << std::setw(5) << symbolTable[i].relocationTable[j]->symbolIndex;
+                    outputFile << std::setw(5) << hex << symbolTable[i].relocationTable[j]->symbolIndex;
                 else
                     outputFile << std::setw(5) <<  "-";
-                outputFile << std::internal << std::setw(4) << symbolTable[i].relocationTable[j]->location;       // Location
+                outputFile << std::internal << std::setw(4) << hex << symbolTable[i].relocationTable[j]->location;       // Location
 
                 if (symbolTable[i].relocationTable[j]->literalIndex == -1)                                         // Literal Index
                     outputFile << std::setw(4) << "-";
                 else
-                    outputFile << std::internal << std::setw(4) << symbolTable[i].relocationTable[j]->literalIndex;
+                    outputFile << std::internal << std::setw(4) << hex << symbolTable[i].relocationTable[j]->literalIndex;
+
                 outputFile << std::internal << std::setw(20) << symbolTable[i].name << endl;                      // Section name
             }
         }

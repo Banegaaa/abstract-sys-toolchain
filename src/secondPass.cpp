@@ -390,7 +390,6 @@ void loadInstruction(int &LC, int &i){
             }
 
             tempSymbolSecondPass->literals.push_back(new Literal("0x0", newLocation, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
-            std::cout << "LC LITERALA JE: " << LC << std::endl;
 
             // Create relocation entry
             relSym = new RelocationSymbol(symbolIndex, newLocation, tempSymbolSecondPass->literals.size() - 1);

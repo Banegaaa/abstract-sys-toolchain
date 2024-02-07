@@ -108,20 +108,28 @@ int main(int argc, char *argv[])
     // Create Linker object
 
     Linker* linker = new Linker(hexFlag, placeSections, inputFileNames, outputFileName);
+    std::cout << "Linker object created" << std::endl;
 
     linker->sectionPlacing();
+    std::cout << "Section placing done" << std::endl;
 
     linker->fixOverlaps3();
+    std::cout << "Overlaps fixed" << std::endl;
 
     linker->fixAddresses();
+    std::cout << "Addresses fixed" << std::endl;
     
     linker->createGlobalSymbolTable();
+    std::cout << "Global symbol table created" << std::endl;
 
     linker->setMachineCodeAddresses();
+    std::cout << "Machine code addresses set" << std::endl;
 
     linker->processRelocations();
+    std::cout << "Relocations processed" << std::endl;
 
     linker->writeOutputFile();
+    std::cout << "Output file written" << std::endl;
 
     return EXIT_SUCCESS;
 }

@@ -76,9 +76,9 @@ void ParserLD::parseSymbolTable(vector<string> tokens){
         exit(EXIT_FAILURE);
     }
 
-    int id = stoi(tokens[0]);
+    int id = stoi(tokens[0], nullptr, 16);
     string name = tokens[1];
-    int value = stoi(tokens[2]);
+    int value = stoi(tokens[2], nullptr, 16);
     bool isDefined = (tokens[3].compare("DEF") == 0) ? true : false;
     bool isGlobal = (tokens[4].compare("G") == 0) ? true : false;
     bool isSection = (tokens[5].compare("S") == 0) ? true : false;
@@ -88,13 +88,13 @@ void ParserLD::parseSymbolTable(vector<string> tokens){
         sectionNumber = -1;
     }
     else {
-        sectionNumber = stoi(tokens[6]);
+        sectionNumber = stoi(tokens[6], nullptr, 16);
     }
 
-    int LC = stoi(tokens[7]);
+    int LC = stoi(tokens[7], nullptr, 16);
     
     if (isSection){
-        int sectionSize = stoi(tokens[8]);
+        int sectionSize = stoi(tokens[8], nullptr, 16);
         // we will add the section symbol here
         SymbolLD* symbol = new SymbolLD(id, name, isSection, sectionSize);
         this->symbolTable.push_back(symbol);
@@ -118,18 +118,19 @@ void ParserLD::parseLiteralTable(vector<string> tokens){
 
     int location = hexToIntNo0x(tokens[1]);
 
-    int size = stoi(tokens[2]);
+    int size = stoi(tokens[2], nullptr, 16);
 
-    int index = stoi(tokens[3]);
-
+    int index = stoi(tokens[3], nullptr, 16);
 
     int symbolIndex;
+    // std::cout << "PRAVI NAM PROBLEM: " << tokens[4] << std::endl;
     if (tokens[4] == "-"){
         symbolIndex = -1;
     }
     else{
-        symbolIndex = stoi(tokens[4]);
+        symbolIndex = stoi(tokens[4], nullptr, 16);
     }
+
     string sectionName = tokens[5];
 
     LiteralLD* literal = new LiteralLD(value, location, size, index, symbolIndex, sectionName);
@@ -152,7 +153,7 @@ void ParserLD::parseRelocationTable(vector<string> tokens){
         symbolIndex = -1;
     }
     else{
-        symbolIndex = stoi(tokens[0]);
+        symbolIndex = stoi(tokens[0], nullptr, 16);
     }
     int offset = hexToIntNo0x(tokens[1]);
     int literalIndex;
@@ -160,7 +161,7 @@ void ParserLD::parseRelocationTable(vector<string> tokens){
         literalIndex = -1;
     }
     else{
-        literalIndex = stoi(tokens[2]);
+        literalIndex = stoi(tokens[2], nullptr, 16);
     }
     string sectionName = tokens[3];
 

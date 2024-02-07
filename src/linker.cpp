@@ -695,14 +695,14 @@ void Linker::setMachineCodeAddresses(){
 
     // print out the machineCodeWithAddresses vector for each section
 
-    for (int i = 0; i < this->sections.size(); i++){
-        SymbolLD* sectionSymbol = this->sections[i].second.first;
-        std::cout << "Section name: " << sectionSymbol->name << endl;
-        std::cout << "VELICINA NJENOG MASINSKOG KODA JE: " << sectionSymbol->machineCodeWithAddresses.size() << endl;
-        for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++){
-            std::cout << " Address: " << hex << sectionSymbol->machineCodeWithAddresses[j].first << " Machine code: " << sectionSymbol->machineCodeWithAddresses[j].second << endl;
-        }
-    }
+    // for (int i = 0; i < this->sections.size(); i++){
+    //     SymbolLD* sectionSymbol = this->sections[i].second.first;
+    //     std::cout << "Section name: " << sectionSymbol->name << endl;
+    //     std::cout << "VELICINA NJENOG MASINSKOG KODA JE: " << sectionSymbol->machineCodeWithAddresses.size() << endl;
+    //     for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++){
+    //         std::cout << " Address: " << hex << sectionSymbol->machineCodeWithAddresses[j].first << " Machine code: " << sectionSymbol->machineCodeWithAddresses[j].second << endl;
+    //     }
+    // }
 }
 
 
@@ -724,6 +724,8 @@ void Linker::processRelocations(){
 
             // Get the symbols name, so we can get it's true value
             symbolName = this->sections[i].second.first->relocationTable[j]->symbolName;
+
+            std::cout << "Prepravljamo simbol: " << symbolName << " na adresi: " << hex << addressForFixing << endl;
 
             // Get the symbol from the global symbol table
             SymbolLD* symbol = this->getGlobalSymbolByName(symbolName);
@@ -749,6 +751,15 @@ void Linker::processRelocations(){
             }
         }
     }
+    for (int i = 0; i < this->sections.size(); i++){
+        SymbolLD* sectionSymbol = this->sections[i].second.first;
+        std::cout << "Section name: " << sectionSymbol->name << endl;
+        std::cout << "VELICINA NJENOG MASINSKOG KODA JE: " << sectionSymbol->machineCodeWithAddresses.size() << endl;
+        for (int j = 0; j < sectionSymbol->machineCodeWithAddresses.size(); j++){
+            std::cout << " Address: " << hex << sectionSymbol->machineCodeWithAddresses[j].first << " Machine code: " << sectionSymbol->machineCodeWithAddresses[j].second << endl;
+        }
+    }
+
 }
 
 
