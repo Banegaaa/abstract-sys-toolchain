@@ -49,5 +49,11 @@ int main(int argc, char** argv) {
         }
         std::cout << "0x" << std::setw(8) << std::setfill('0') << hex << emulator->csr[i] << std::setw(1) << std::endl;
     }
+
+    // also print out 4B from memory starting from address 0
+    // std::cout << "Memory content starting from address 0:" << std::endl;
+    // for (int i = 1; i < 5; i++){
+    //     std::cout << "0x" << stoi(emulator->getByteFromMemory(i), nullptr, 16) << std::endl;
+    // }
     return EXIT_SUCCESS;
 }
