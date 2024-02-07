@@ -150,17 +150,35 @@ void callAndJmpCase(int &LC, int &i){
         tempSymbolSecondPass = symbolExists(tokenList[i].name);
         int symbolIndex = tempSymbolSecondPass->number;
 
+        std::cout << "JMP/CALL SYMBOL INDEX: " << symbolIndex << std::endl;
+
+        // We create a new literal for the symbol
+        // Since we need to know the displacement here, we will calculate the correct place for the literal (last_loc + 4) and set it
+        // This will also be the offset for the relocation entry
+        
         tempSymbolSecondPass = getSectionSymbol(currentSection);
+
         index = tempSymbolSecondPass->literals.size();
-        Literal* newLiteral = new Literal(0, LC, 4, index, symbolIndex);  // we don't know the value of the symbol yet, so we'll set it to 0, size is 4 bytes
+
+        int newLocation;
+
+        if (tempSymbolSecondPass->literals.size() == 0){
+            newLocation = tempSymbolSecondPass->sectionSize;
+        }
+        else {
+            newLocation = tempSymbolSecondPass->literals[tempSymbolSecondPass->literals.size() - 1]->location + 4;
+            
+        }
+
+        Literal* newLiteral = new Literal(0, newLocation, 4, index, symbolIndex);  // we don't know the value of the symbol yet, so we'll set it to 0, size is 4 bytes
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
-        relSym = new RelocationSymbol(symbolIndex, LC, index);
+        relSym = new RelocationSymbol(symbolIndex, newLocation, index);
         tempSymbolSecondPass->relocationTable.push_back(relSym);
 
         // set index to the last 3 bytes of the literal
-        machineCodeWord |= index;
+        machineCodeWord |= (newLocation - LC);
     }
 
     tempSymbolSecondPass = getSectionSymbol(currentSection);
@@ -234,7 +252,7 @@ void jumpInstructionsCase(int &LC, int &i){
         }
     }
     else {  // tokenList[i].value == NAME
-        // IN ANY CASE, THE VALUE OF THE SYMBOL WILL BE SET IN THE POOL OF LITERALS (machineCodeWord = mem32[...])
+
         if (operation == BEQ){
             machineCodeWord = 0x39F00000;
         }
@@ -245,23 +263,36 @@ void jumpInstructionsCase(int &LC, int &i){
             machineCodeWord = 0x3BF00000;
         }
 
+        std::cout << "BEQ/BNE/BGT SYMBOL: " << tokenList[i].name << std::endl;
+
         machineCodeWord |= (reg1 << 16);
         machineCodeWord |= (reg2 << 12);
 
         tempSymbolSecondPass = symbolExists(tokenList[i].name);
         int symbolIndex = tempSymbolSecondPass->number;        
 
+        // Just like with call&jmp case, we create a new literal for the symbol, and set it's location accordingly
         tempSymbolSecondPass = getSectionSymbol(currentSection);
         index = tempSymbolSecondPass->literals.size();
-        Literal* newLiteral = new Literal(0, LC, 4, index, symbolIndex);
+
+        int newLocation;
+        if (tempSymbolSecondPass->literals.size() == 0){
+            newLocation = tempSymbolSecondPass->sectionSize;
+        }
+        else {
+            newLocation = tempSymbolSecondPass->literals[tempSymbolSecondPass->literals.size() - 1]->location + 4;
+        }
+
+
+        Literal* newLiteral = new Literal(0, newLocation, 4, index, symbolIndex);
         tempSymbolSecondPass->addLiteral(newLiteral);
 
         // Create a relocation entry
-        relSym = new RelocationSymbol(symbolIndex, LC, index);
+        relSym = new RelocationSymbol(symbolIndex, newLocation, index);
         tempSymbolSecondPass->relocationTable.push_back(relSym);
 
         // set index to the last 3 bytes of the literal
-        machineCodeWord |= index;
+        machineCodeWord |= (newLocation - LC);
     }
 
     tempSymbolSecondPass = getSectionSymbol(currentSection);
@@ -308,11 +339,21 @@ void loadInstruction(int &LC, int &i){
             int symbolIndex = tempSymbolSecondPass->number;
 
             tempSymbolSecondPass = getSectionSymbol(currentSection);
-            tempSymbolSecondPass->literals.push_back(new Literal(0, LC, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
+
+            // Calculate the location of the literal before adding it to the pool of literals
+            int newLocation;
+            if (tempSymbolSecondPass->literals.size() == 0){
+                newLocation = tempSymbolSecondPass->sectionSize;
+            }
+            else {
+                newLocation = tempSymbolSecondPass->literals[tempSymbolSecondPass->literals.size() - 1]->location + 4;
+            }
+
+            tempSymbolSecondPass->literals.push_back(new Literal(0, newLocation, 4, tempSymbolSecondPass->literals.size(), symbolIndex));
             std::cout << "LC LITERALA JE: " << LC << std::endl;
 
             // Create relocation entry
-            relSym = new RelocationSymbol(symbolIndex, LC, tempSymbolSecondPass->literals.size() - 1);
+            relSym = new RelocationSymbol(symbolIndex, newLocation, tempSymbolSecondPass->literals.size() - 1);
             tempSymbolSecondPass->relocationTable.push_back(relSym);
 
             // machine code just as the case above (where the value doesn't fit in 12 bits)
@@ -320,7 +361,7 @@ void loadInstruction(int &LC, int &i){
             registerNumber = 15;  // pc
             machineCodeWord |= (registerNumber << 16);
 
-            machineCodeWord |= tempSymbolSecondPass->literals.size() - 1;  // the index of the last literal in the pool of literals
+            machineCodeWord |= (newLocation - LC);  // the index of the last literal in the pool of literals
         }
 
         // finish up the instruction
@@ -347,6 +388,8 @@ void loadInstruction(int &LC, int &i){
         else if (tokenList[i].value == HEX_LITERAL){
             value = hexToInt(tokenList[i].name);
         }
+
+        std::cout << "VALUE: " << hex << value << std::endl;
 
         // 1. B = 15, C = 0, A = regNum  (gpr[A] <= mem32[pc + D])  //TODO: should this be gpr[A] <= PC + D?
 

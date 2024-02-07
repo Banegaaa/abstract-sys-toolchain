@@ -199,7 +199,7 @@ void loadOperand(int instructionTokenValue, int &LC, int &i){
         }
         if (!literalExists(value, currentSection)){
             tempSymbol = symbolExists(currentSection);
-            tempSymbol->addLiteral(new Literal(value, 0, sizeof(value), tempSymbol->literals.size(), -1));
+            tempSymbol->addLiteral(new Literal(value, 0, 4, tempSymbol->literals.size(), -1));
         }
         LC += 8;
     }
