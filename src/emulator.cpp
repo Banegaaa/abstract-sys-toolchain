@@ -66,7 +66,7 @@ void Emulator::parseInputFileAndLoadIntoMemory(){
     string line;
     vector<string> tokens;
 
-    int address;
+    long address;
 
     while (getline(this->inputFile, line)) {
         tokens = tokenize(line);
@@ -77,7 +77,7 @@ void Emulator::parseInputFileAndLoadIntoMemory(){
 
         // First token is the address
 
-        address = stoi(tokens[0].substr(0, tokens[0].size() - 1), nullptr, 16);
+        address = stoul(tokens[0].substr(0, tokens[0].size() - 1), nullptr, 16);
 
         // All that are left are machine code bytes
         // We take them and place them in memory, with their corresponding addresses
@@ -1058,7 +1058,7 @@ void Emulator::execute(){
 
             string strAddress2 = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
             
-            int address2 = stoi(strAddress2, nullptr, 16);
+            long address2 = stoul(strAddress2, nullptr, 16);
 
             intHexStrStringStream << hex << this->gpr[C];
             regValueStr = intHexStrStringStream.str();

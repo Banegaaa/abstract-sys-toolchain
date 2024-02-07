@@ -18,7 +18,7 @@ bool compareByAddress(const std::pair<std::string, std::pair<SymbolLD*, int> >& 
 }
 
 
-Linker::Linker(bool hexFlag, vector<pair<string, int> > placeSections, vector<string> inputFileNames, string outputFileName){
+Linker::Linker(bool hexFlag, vector<pair<string, long> > placeSections, vector<string> inputFileNames, string outputFileName){
     this->hexFlag = hexFlag;
     this->placeSections = placeSections;
 
@@ -105,7 +105,7 @@ void Linker::sectionPlacing(){
     for (int it = 0; it < this->placeSections.size(); it++){
         
         string sectionName = this->placeSections[it].first;  // first = key = section_name
-        int address = this->placeSections[it].second;        // second = value = address
+        long address = this->placeSections[it].second;        // second = value = address
 
 
         for (int i = 0; i < this->parsers.size(); i++){
@@ -149,7 +149,7 @@ void Linker::sectionPlacing(){
 
                 bool alreadyInSections = false;
 
-                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
                     if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(sectionSymbol->name) == 0){
                         alreadyInSections = true;
                         break;
@@ -161,7 +161,7 @@ void Linker::sectionPlacing(){
 
                     bool existsFromAnotherParser = false;
 
-                    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it){
+                    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator it = sections.begin(); it != sections.end(); ++it){
                         if (it->second.first->name.compare(sectionSymbol->name) == 0){
                             existsFromAnotherParser = true;
 
@@ -199,7 +199,7 @@ void Linker::sectionPlacing(){
         }
     }
 
-    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
         std::string fileName = it->first;
         SymbolLD* symbolPointer = it->second.first;
         int address = it->second.second;
@@ -502,7 +502,7 @@ void Linker::fixAddresses(){
                 string sectionName = this->parsers[i]->getSectionSymbolById(sectionNumber)->name;
                 
 
-                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
                     if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(sectionName) == 0){
                         // We have found the section in which this symbol is defined
                         // We need to add the address of this section to the value of this symbol
@@ -515,7 +515,7 @@ void Linker::fixAddresses(){
                 // Section symbol
 
                 // We set the value of the section symbol to the starting address of that section from the sections vector
-                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                for (std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
                     if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
                         // We have found the section
                         this->parsers[i]->symbolTable[j]->value = it->second.second;
@@ -529,7 +529,7 @@ void Linker::fixAddresses(){
                     // We need to find the symbol in the symbol table
                     // We will do this by looking for the symbol in the symbol table
 
-                    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
                         if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
                             // We have found the section
                             this->parsers[i]->symbolTable[j]->relocationTable[k]->offset += it->second.second;
@@ -543,7 +543,7 @@ void Linker::fixAddresses(){
                     // We need to find the symbol in the symbol table
                     // We will do this by looking for the symbol in the symbol table
 
-                    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, int> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
+                    for (std::vector<std::pair<std::string, std::pair<SymbolLD*, long> > >::iterator it = sections.begin(); it != sections.end(); ++it) {
                         if (it->first.compare(this->parsers[i]->inputFileName) == 0 && it->second.first->name.compare(this->parsers[i]->symbolTable[j]->name) == 0){
                             // We have found the section
                             this->parsers[i]->symbolTable[j]->literalTable[k]->location += it->second.second;

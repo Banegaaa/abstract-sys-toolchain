@@ -12,7 +12,7 @@ class Linker {
 
     bool hexFlag;
     
-    vector<pair<string, int> > placeSections;  // (section_name, address)
+    vector<pair<string, long> > placeSections;  // (section_name, address)
     
     vector<ifstream> inputFiles;
 
@@ -22,11 +22,11 @@ class Linker {
 
     ofstream outputFile;
 
-    vector<pair<string, pair<SymbolLD*,int> > > sections; // (file_name, (section_symbol, base_address))
+    vector<pair<string, pair<SymbolLD*,long> > > sections; // (file_name, (section_symbol, base_address))
 
     vector<SymbolLD*> globalSymbolTable;
 
-    Linker(bool hexFlag, vector<pair<string, int> > placeSections, std::vector<string> inputFileNames, string outputFileName);
+    Linker(bool hexFlag, vector<pair<string, long> > placeSections, std::vector<string> inputFileNames, string outputFileName);
     ~Linker();
 
     int findTheNextAvailablePossition();  // This function will find the next available possition to place a section

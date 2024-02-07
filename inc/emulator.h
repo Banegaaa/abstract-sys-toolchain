@@ -17,7 +17,7 @@ class Emulator {
     unsigned gpr[16];  // General purpose registers
     unsigned csr[3];  // Control and status registers
 
-    vector<pair<unsigned, string> > memory;
+    vector<pair<long, string> > memory;
 
     Emulator(string inputFileName);
     ~Emulator() {};

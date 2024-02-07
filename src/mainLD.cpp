@@ -6,7 +6,7 @@
 
 using namespace std;
 
-vector<pair<string, int> > placeSections;  // (section_name, address)
+vector<pair<string, long> > placeSections;  // (section_name, address)
 
 string arg;
 string sectionName;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
             // Add to placeSections map
             // placeSections.insert(std::make_pair(sectionName, stoi(address, nullptr, 16)));
-            placeSections.push_back(std::make_pair(sectionName, stoi(address, nullptr, 16)));
+            placeSections.push_back(std::make_pair(sectionName, stoul(address, nullptr, 16)));
             
         }
     }
