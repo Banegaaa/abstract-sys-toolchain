@@ -177,6 +177,9 @@ void Emulator::execute(){
             intHexStrStringStream << hex << this->gpr[15];
             regValueStr = intHexStrStringStream.str();
 
+            // clear the stringstream
+            intHexStrStringStream.str(std::string());
+
             // if the regValueStr is less than 8 characters, we need to add leading zeros
             if (regValueStr.length() < 8){
                 regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
@@ -197,6 +200,9 @@ void Emulator::execute(){
 
             intHexStrStringStream << hex << this->csr[0];
             regValueStr = intHexStrStringStream.str();
+
+            // clear the stringstream
+            intHexStrStringStream.str(std::string());
 
             // if the regValueStr is less than 8 characters, we need to add leading zeros
             if (regValueStr.length() < 8){
@@ -225,7 +231,6 @@ void Emulator::execute(){
 
             // pc <= handle;
             this->gpr[15] = this->csr[1];
-
         }
         else if (instructionCode.compare(XCHG) == 0) {
 
@@ -523,17 +528,24 @@ void Emulator::execute(){
 
             this->gpr[15] += 4;
 
-            byte = std::to_string(this->gpr[15] & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 1, byte);  // gpr[14] - 1 because sp is pointing to the last taken address
+            intHexStrStringStream << hex << this->gpr[15];
+            regValueStr = intHexStrStringStream.str();
 
-            byte = std::to_string((this->gpr[15] >> 8) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 2, byte);
+            // clear the stringstream
+            intHexStrStringStream.str(std::string());
 
-            byte = std::to_string((this->gpr[15] >> 16) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 3, byte);
+            // if the regValueStr is less than 8 characters, we need to add leading zeros
+            if (regValueStr.length() < 8){
+                regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
+            }
 
-            byte = std::to_string((this->gpr[15] >> 24) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 4, byte);
+            this->writeByteToMemory(this->gpr[14] - 1, regValueStr.substr(0, 2));  // gpr[14] - 1 because sp is pointing to the last taken address
+
+            this->writeByteToMemory(this->gpr[14] - 2, regValueStr.substr(2, 2));
+
+            this->writeByteToMemory(this->gpr[14] - 3, regValueStr.substr(4, 2));
+
+            this->writeByteToMemory(this->gpr[14] - 4, regValueStr.substr(6, 2));
 
             this->gpr[14] -= 4;
 
@@ -541,12 +553,15 @@ void Emulator::execute(){
 
             int address = this->gpr[A] + Disp - 4;  // -4 because we incremented the pc by 4 before pushing and the displacement to the literal is counted from the current instruction
 
+            std::cout << "ADDRESA SA KOJE CITAMO REC: " << hex << address << endl;
             // *** IMPORTANT ***
             // When we need to fetch 4 bytes from memory, we need to fetch them in reverse order, because of the little endianess of the system
             // When we were storing the bytes, we first stored the highest byte, because the stack pointer is decreasing when we push!!!
 
             // TODO: Is this little endianess? Check if it's ok
             machineCodeWord = this->getByteFromMemory(address) + this->getByteFromMemory(address + 1) + this->getByteFromMemory(address + 2) + this->getByteFromMemory(address + 3);
+
+            std::cout << "MACHINE CODE WORD: " << machineCodeWord << endl;
 
             this->gpr[15] = stoul(machineCodeWord, nullptr, 16);
         }
@@ -1039,6 +1054,10 @@ void Emulator::execute(){
 
             intHexStrStringStream << hex << this->gpr[C];
             regValueStr = intHexStrStringStream.str();
+
+            // clear the stringstream
+            intHexStrStringStream.str(std::string());
+
             // if the regValueStr is less than 8 characters, we need to add leading zeros
             if (regValueStr.length() < 8){
                 regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
@@ -1078,6 +1097,9 @@ void Emulator::execute(){
             intHexStrStringStream << hex << this->gpr[C];
             regValueStr = intHexStrStringStream.str();
 
+            // clear the stringstream
+            intHexStrStringStream.str(std::string());
+
             // if the regValueStr is less than 8 characters, we need to add leading zeros
             if (regValueStr.length() < 8){
                 regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
@@ -1107,12 +1129,26 @@ void Emulator::execute(){
 
             this->gpr[14] -= 4;
 
+            // *** IMPORTANT ***
+            // We have already decremented stack pointer, so we when we write to memory, we will increment
+
             // mem32[sp] <= gpr[C];
 
-            this->writeByteToMemory(this->gpr[14], std::to_string(this->gpr[C] & 0xFF));
-            this->writeByteToMemory(this->gpr[14] + 1, std::to_string((this->gpr[C] >> 8) & 0xFF));
-            this->writeByteToMemory(this->gpr[14] + 2, std::to_string((this->gpr[C] >> 16) & 0xFF));
-            this->writeByteToMemory(this->gpr[14] + 3, std::to_string((this->gpr[C] >> 24) & 0xFF));
+            intHexStrStringStream << hex << this->gpr[C];
+            regValueStr = intHexStrStringStream.str();
+
+            // clear the stringstream
+            intHexStrStringStream.str(std::string());
+
+            // if the regValueStr is less than 8 characters, we need to add leading zeros
+            if (regValueStr.length() < 8){
+                regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
+            }
+
+            this->writeByteToMemory(this->gpr[14], regValueStr.substr(0, 2));
+            this->writeByteToMemory(this->gpr[14] + 1, regValueStr.substr(2, 2));
+            this->writeByteToMemory(this->gpr[14] + 2, regValueStr.substr(4, 2));
+            this->writeByteToMemory(this->gpr[14] + 3, regValueStr.substr(6, 2));
 
             this->gpr[15] += 4;
 
