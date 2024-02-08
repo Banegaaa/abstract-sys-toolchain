@@ -138,6 +138,7 @@ void Emulator::execute(){
     stringstream intHexStrStringStream;        // for converting int to hex to string
     string regValueStr;                       // for placing string from intHexStrStringStream
 
+    string pushovanaVrednost;
 
     // for (int i = 0; i < this->memory.size(); i++) {
     //     cout << hex << this->memory[i].first << ": " << this->memory[i].second << endl;
@@ -145,8 +146,12 @@ void Emulator::execute(){
 
     while (!halt) {
 
+        int pcPopCnt = 0;
+
         string instructionCode = this->getByteFromMemory(this->gpr[15]);
         std::cout << "Instruction code: " << instructionCode << endl;
+
+        if (instructionCode == "ff") break;
 
         if (instructionCode.compare(HALT) == 0) {
             // HALT
@@ -185,15 +190,18 @@ void Emulator::execute(){
                 regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
             }
 
-            this->writeByteToMemory(this->gpr[14] - 1, regValueStr.substr(6, 2));  // gpr[14] - 1 because sp is pointing to the last taken address
+            std::cout << "PC KOJI PUSHUJEMO: " << regValueStr << endl;
+            std::cout << "ADRESA NA KOJU PUSHUJEMO NAJNIZI BAJT: " << hex << this->gpr[14] - 1 << endl;
 
-            this->writeByteToMemory(this->gpr[14] - 2, regValueStr.substr(4, 2));
+            this->writeByteToMemory(this->gpr[14] - 1, regValueStr.substr(0, 2));  // gpr[14] - 1 because sp is pointing to the last taken address
 
-            this->writeByteToMemory(this->gpr[14] - 3, regValueStr.substr(2, 2));
+            this->writeByteToMemory(this->gpr[14] - 2, regValueStr.substr(2, 2));
 
-            this->writeByteToMemory(this->gpr[14] - 4, regValueStr.substr(0, 2));
+            this->writeByteToMemory(this->gpr[14] - 3, regValueStr.substr(4, 2));
 
-            this->gpr[14] = this->gpr[15];
+            this->writeByteToMemory(this->gpr[14] - 4, regValueStr.substr(6, 2));
+
+            gpr[14] = gpr[14] - 4;
 
 
             // push status
@@ -209,17 +217,13 @@ void Emulator::execute(){
                 regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
             }
 
-            byte = std::to_string(this->csr[0] & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 1, regValueStr.substr(6, 2));  // gpr[14] - 1 because sp is pointing to the last taken address
+            this->writeByteToMemory(this->gpr[14] - 1, regValueStr.substr(0, 2));  // gpr[14] - 1 because sp is pointing to the last taken address
 
-            byte = std::to_string((this->csr[0] >> 8) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 2, regValueStr.substr(4, 2));
+            this->writeByteToMemory(this->gpr[14] - 2, regValueStr.substr(2, 2));
 
-            byte = std::to_string((this->csr[0] >> 16) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 3, regValueStr.substr(2, 2));
+            this->writeByteToMemory(this->gpr[14] - 3, regValueStr.substr(4, 2));
 
-            byte = std::to_string((this->csr[0] >> 24) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 4, regValueStr.substr(0, 2));
+            this->writeByteToMemory(this->gpr[14] - 4, regValueStr.substr(6, 2));
 
             this->gpr[14] -= 4;
 
@@ -484,17 +488,24 @@ void Emulator::execute(){
 
             // TODO: THIS IS DIFFERENT ENDIANESS THAN IN THE ASSEMBLER? IT IS DIFFERENT THAN THE WAY WE EXTRACT FROM MEMORY
 
-            byte = std::to_string(this->gpr[15] & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 1, byte);  // gpr[14] - 1 because sp is pointing to the last taken address
+            intHexStrStringStream << hex << this->gpr[15];
+            regValueStr = intHexStrStringStream.str();
 
-            byte = std::to_string((this->gpr[15] >> 8) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 2, byte);
+            // clear the stringstream
+            intHexStrStringStream.str(std::string());
 
-            byte = std::to_string((this->gpr[15] >> 16) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 3, byte);
+            // if the regValueStr is less than 8 characters, we need to add leading zeros
+            if (regValueStr.length() < 8){
+                regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
+            }
 
-            byte = std::to_string((this->gpr[15] >> 24) & 0xFF);
-            this->writeByteToMemory(this->gpr[14] - 4, byte);
+            this->writeByteToMemory(this->gpr[14] - 1, regValueStr.substr(0, 2));  // gpr[14] - 1 because sp is pointing to the last taken address
+
+            this->writeByteToMemory(this->gpr[14] - 2, regValueStr.substr(2, 2));
+
+            this->writeByteToMemory(this->gpr[14] - 3, regValueStr.substr(4, 2));
+
+            this->writeByteToMemory(this->gpr[14] - 4, regValueStr.substr(6, 2));
 
             this->gpr[14] -= 4;
 
@@ -961,6 +972,7 @@ void Emulator::execute(){
             this->gpr[A] = stoul(machineCodeWord, nullptr, 16);
 
             this->gpr[15] += 4;
+            
         }
         else if (instructionCode.compare(POP) == 0){
             
@@ -981,14 +993,19 @@ void Emulator::execute(){
 
             // we get the value from the address that sp is pointing to
             machineCodeWord = this->getByteFromMemory(this->gpr[B] + 3) + this->getByteFromMemory(this->gpr[B] + 2) + this->getByteFromMemory(this->gpr[B] + 1) + this->getByteFromMemory(this->gpr[B]);
+            
+            std::cout << "POPOVANA VREDNOST: " << machineCodeWord << endl;
+            std::cout << "ADESA SA KOJE CITAMO NAJVISU REC: " << hex << this->gpr[B] << endl;
 
             this->gpr[A] = stoul(machineCodeWord, nullptr, 16);
 
             // sp <= sp + 4;
 
-            this->gpr[B] += D;
+            this->gpr[B] += 4;
 
-            this->gpr[15] += 4;
+            if (A != 15){
+                this->gpr[15] += 4;
+            }
         }
         else if (instructionCode.compare(POP_S) == 0){
 
@@ -1014,7 +1031,7 @@ void Emulator::execute(){
 
             // sp <= sp + 4;
 
-            this->gpr[B] += D;
+            this->gpr[B] += 4;
 
             this->gpr[15] += 4;
         }
@@ -1129,8 +1146,8 @@ void Emulator::execute(){
 
             this->gpr[14] -= 4;
 
-            // *** IMPORTANT ***
-            // We have already decremented stack pointer, so we when we write to memory, we will increment
+            // ******** IMPORTANT ********
+            // We have already decremented stack pointer, so we when we write to memory, we will increment !!!
 
             // mem32[sp] <= gpr[C];
 
@@ -1145,11 +1162,15 @@ void Emulator::execute(){
                 regValueStr = string(8 - regValueStr.length(), '0') + regValueStr;
             }
 
-            this->writeByteToMemory(this->gpr[14], regValueStr.substr(0, 2));
-            this->writeByteToMemory(this->gpr[14] + 1, regValueStr.substr(2, 2));
-            this->writeByteToMemory(this->gpr[14] + 2, regValueStr.substr(4, 2));
-            this->writeByteToMemory(this->gpr[14] + 3, regValueStr.substr(6, 2));
+            pushovanaVrednost = regValueStr;
+            std::cout << "PUSHOVANA VREDNOST: 0x" << pushovanaVrednost << endl;
+            std::cout << "ADRESA OD KOJE POCINJEMO DA PISEMO NAJMANJU VREDNOST (OSTALE SU IZNAD..): 0x" << hex << this->gpr[14] << endl;
 
+            this->writeByteToMemory(this->gpr[14] + 3, regValueStr.substr(0, 2));
+            this->writeByteToMemory(this->gpr[14] + 2, regValueStr.substr(2, 2));
+            this->writeByteToMemory(this->gpr[14] + 1, regValueStr.substr(4, 2));
+            this->writeByteToMemory(this->gpr[14], regValueStr.substr(6, 2));
+            
             this->gpr[15] += 4;
 
         }
